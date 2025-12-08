@@ -27,9 +27,15 @@ export const resizeImage = (file: File, maxSize: number = 250): Promise<string> 
                 
                 const ctx = canvas.getContext('2d');
                 if(ctx) {
+                    // ENABLE HIGH QUALITY SMOOTHING
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
                     ctx.drawImage(img, 0, 0, width, height);
-                    // Compress to JPEG 0.7 for speed and temporary "upload" size
-                    resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                    
+                    // Compress to JPEG 0.95 for higher fidelity
+                    // While 250px is small, this ensures artifacts are minimized
+                    resolve(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
                 } else {
                     reject("Canvas context error");
                 }
@@ -51,7 +57,7 @@ export const extractVideoFrame = (file: File): Promise<string> => {
         video.currentTime = 1.0; 
         video.onseeked = () => {
             const canvas = document.createElement('canvas');
-            const maxSize = 250; // Consistent with images
+            const maxSize = 250; 
             let width = video.videoWidth;
             let height = video.videoHeight;
             if (width > height) {
@@ -63,8 +69,12 @@ export const extractVideoFrame = (file: File): Promise<string> => {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             if(ctx) {
+                // ENABLE HIGH QUALITY SMOOTHING
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
                 ctx.drawImage(video, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                resolve(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
             } else {
                 reject("Canvas error");
             }
