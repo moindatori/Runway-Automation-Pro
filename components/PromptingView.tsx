@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { usePrompting } from '../hooks/usePrompting';
 import { KeyManager } from './KeyManager';
@@ -150,7 +151,8 @@ export const PromptingView: React.FC<Props> = ({ apiKeys, addApiKey, deleteApiKe
                         )}
 
                         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {results.length > 0 && !isProcessing && (
+                            {/* EXPORT BUTTONS RESTORED: Removed !isProcessing check so they are always visible if results exist */}
+                            {results.length > 0 && (
                                 <>
                                     {mode === 'runway' && results.some(r => r.type === 'runway') && (
                                         <button className="export-btn-ghost" onClick={() => exportRunwayCSV(results)}>

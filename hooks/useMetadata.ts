@@ -91,10 +91,10 @@ export const useMetadata = (apiKeys: string[]) => {
         let sCount = 0;
         let fCount = 0;
 
-        // BATCH CONFIGURATION FOR FREE TIER SAFETY
-        // Reduced from 5 to 3 to avoid HTTP 429 errors
+        // BATCH CONFIGURATION FOR GEMINI FREE TIER (15 RPM Limit)
+        // 3 Requests + ~12s delay = ~15s cycle = ~12 Requests/Minute (Safe)
         const BATCH_SIZE = 3;
-        const BATCH_DELAY = 4000;
+        const BATCH_DELAY = 12000;
 
         for (let i = 0; i < listToProcess.length; i += BATCH_SIZE) {
             const batch = listToProcess.slice(i, i + BATCH_SIZE);
