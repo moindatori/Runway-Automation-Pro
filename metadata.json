@@ -1,5 +1,0 @@
-{
-  "name": "Vision Studio",
-  "description": "A high-performance React application for batch processing images using OpenAI GPT-4o-mini for Runway video prompts and Stock metadata.",
-  "requestFramePermissions": []
-}
