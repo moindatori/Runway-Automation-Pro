@@ -1,5 +1,5 @@
 
-import { makeGeminiRequest } from './apiClient';
+import { makeOpenAIRequest } from './apiClient';
 
 // --- TRAINING DATA ---
 const METADATA_EXAMPLES = `
@@ -70,13 +70,10 @@ export const generateMetadata = async (base64Data: string | null, apiKey: string
     let finalPrompt = basePrompt;
     let finalData = base64Data;
 
-    // Handle EPS specific prompt adjustment logic here (though usually passed as null data + text description if we had a preview, but here we assume previewBase64 is passed for EPS preview image or we send text only)
     if(settings.isEps) {
         finalPrompt = `Generate stock metadata for an EPS vector file named "${settings.filename}". ` + basePrompt;
-        // API call expects null base64 if it's purely text based, but if we have a raster preview of the EPS, we send it.
-        // If base64Data is null, makeGeminiRequest handles it as text-only.
     }
 
-    const data = await makeGeminiRequest(finalPrompt, finalData, apiKey, true);
+    const data = await makeOpenAIRequest(finalPrompt, finalData, apiKey, true);
     return data;
 };

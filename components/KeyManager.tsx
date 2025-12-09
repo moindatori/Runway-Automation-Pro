@@ -37,7 +37,7 @@ export const KeyManager: React.FC<KeyManagerProps> = ({ apiKeys, addApiKey, dele
                     </div>
                 ))}
                 <div className="add-key-input">
-                    <input type="password" value={inputVal} onChange={(e) => setInputVal(e.target.value)} placeholder="Enter new Gemini API key" />
+                    <input type="password" value={inputVal} onChange={(e) => setInputVal(e.target.value)} placeholder="Enter OpenAI API key (sk-proj-...)" />
                     <button onClick={handleAdd}>Add</button>
                 </div>
             </div>

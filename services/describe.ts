@@ -1,5 +1,5 @@
 
-import { makeGeminiRequest } from './apiClient';
+import { makeOpenAIRequest } from './apiClient';
 
 // --- TRAINING DATA ---
 const INSTRUCTION_DESCRIBE = `
@@ -22,6 +22,6 @@ Your style should be similar in richness and structure to descriptions like the 
 
 // --- EXPORTED FUNCTION ---
 export const generateImageDescription = async (base64Data: string | null, apiKey: string) => {
-    const rawText = await makeGeminiRequest(INSTRUCTION_DESCRIBE, base64Data, apiKey, false);
+    const rawText = await makeOpenAIRequest(INSTRUCTION_DESCRIBE, base64Data, apiKey, false);
     return rawText;
 };

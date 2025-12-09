@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TopNav } from './components/TopNav';
 import { PromptingView } from './components/PromptingView';
@@ -91,7 +92,7 @@ const App: React.FC = () => {
                     <span onClick={() => setView('contact')} style={{ cursor: 'pointer', fontWeight: 600 }}>Contact</span>
                 </div>
                 <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '11px', opacity: 0.6, color: 'var(--text-muted)' }}>
-                    © {new Date().getFullYear()} GeminiVision Studio. All rights reserved.
+                    © {new Date().getFullYear()} Vision Studio. All rights reserved.
                 </div>
             </footer>
         </div>

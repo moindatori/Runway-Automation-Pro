@@ -81,7 +81,7 @@ export const PromptingView: React.FC<Props> = ({ apiKeys, addApiKey, deleteApiKe
         <div id="view-prompting" className="view-section active-view">
             <div id="studio-header-section" className="text-anim-enter">
                 <div className="powered-tag" style={{display:'flex', gap:'12px'}}>
-                    <div className="dot"></div> Powered by Moin Datori
+                    <div className="dot"></div> Powered by GPT-4o Mini
                     <a href="https://youtube.com/channel/UC7otDLkBsEsMstspQN6FpWw/" target="_blank" rel="noopener noreferrer" style={{display:'flex', alignItems:'center', color:'var(--accent-cyan)'}}>
                         <YoutubeIcon />
                     </a>
@@ -128,7 +128,7 @@ export const PromptingView: React.FC<Props> = ({ apiKeys, addApiKey, deleteApiKe
                     <div className="right-panel">
                         <div className="config-section">
                             <div className="label">AI Model</div>
-                            <div className="input-wrapper"><span style={{fontSize:'13px', fontWeight:500}}>Gemini 2.5 Flash</span></div>
+                            <div className="input-wrapper"><span style={{fontSize:'13px', fontWeight:500}}>OpenAI GPT-4o-mini</span></div>
                         </div>
                         <div className="config-section">
                             <div className="label">Output Configuration</div>
@@ -151,7 +151,6 @@ export const PromptingView: React.FC<Props> = ({ apiKeys, addApiKey, deleteApiKe
                         )}
 
                         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {/* EXPORT BUTTONS RESTORED: Removed !isProcessing check so they are always visible if results exist */}
                             {results.length > 0 && (
                                 <>
                                     {mode === 'runway' && results.some(r => r.type === 'runway') && (

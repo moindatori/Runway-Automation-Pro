@@ -1,5 +1,5 @@
 
-import { makeGeminiRequest } from './apiClient';
+import { makeOpenAIRequest } from './apiClient';
 
 // --- TRAINING DATA ---
 const INSTRUCTION_RUNWAY = `
@@ -61,7 +61,7 @@ function buildRunwayPrompt(motion: string, clause: string) {
 
 // --- EXPORTED FUNCTION ---
 export const generateRunwayPrompts = async (base64Data: string | null, apiKey: string) => {
-    const rawJson = await makeGeminiRequest(INSTRUCTION_RUNWAY, base64Data, apiKey, true);
+    const rawJson = await makeOpenAIRequest(INSTRUCTION_RUNWAY, base64Data, apiKey, true);
     
     return {
         low: buildRunwayPrompt("low", rawJson.low || ""),

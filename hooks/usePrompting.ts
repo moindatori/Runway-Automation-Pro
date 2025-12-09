@@ -61,11 +61,12 @@ export const usePrompting = (apiKeys: string[]) => {
         setProcCount(0);
         let processedCount = 0;
 
-        // BATCH CONFIGURATION for Gemini 2.5 Flash
-        // Much higher throughput possible. We use 10 concurrent requests every 2 seconds.
-        // Rate limiting (429) is handled by the API client with exponential backoff.
-        const BATCH_SIZE = 10; 
-        const BATCH_DELAY = 2000; 
+        // BATCH CONFIGURATION for OpenAI GPT-4o-mini
+        // Limit: 500 RPM, 200k TPM.
+        // We set batch size to 6 and delay to 1s to achieve ~120 RPM safely.
+        // This utilizes approx 25-30% of the available throughput buffer.
+        const BATCH_SIZE = 6; 
+        const BATCH_DELAY = 1000; 
 
         for (let i = 0; i < listToProcess.length; i += BATCH_SIZE) {
             const batch = listToProcess.slice(i, i + BATCH_SIZE);
