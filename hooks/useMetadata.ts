@@ -91,10 +91,10 @@ export const useMetadata = (apiKeys: string[]) => {
         let sCount = 0;
         let fCount = 0;
 
-        // BATCH CONFIGURATION FOR GEMINI FREE TIER (15 RPM Limit)
-        // 3 Requests + ~12s delay = ~15s cycle = ~12 Requests/Minute (Safe)
-        const BATCH_SIZE = 3;
-        const BATCH_DELAY = 12000;
+        // BATCH CONFIGURATION for Gemini 2.5 Flash
+        // Much higher throughput possible. We use 10 concurrent requests every 2 seconds.
+        const BATCH_SIZE = 10;
+        const BATCH_DELAY = 2000;
 
         for (let i = 0; i < listToProcess.length; i += BATCH_SIZE) {
             const batch = listToProcess.slice(i, i + BATCH_SIZE);

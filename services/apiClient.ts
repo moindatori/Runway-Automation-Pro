@@ -20,7 +20,7 @@ export const makeGeminiRequest = async (prompt: string, b64: string | null, key:
     for (let attempt = 1; attempt <= 4; attempt++) {
         try {
             const res = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
