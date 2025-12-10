@@ -1,9 +1,10 @@
 // pages/user/payments.js
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function UserPaymentsPage() {
-  const [region, setRegion] = useState<"PK" | "INT">("PK");
+  // Simple JS state – no TypeScript generics
+  const [region, setRegion] = useState("PK");
 
   const isPK = region === "PK";
   const qrUrl = isPK ? "/qr/pk_1000.png" : "/qr/intl_10usd.png";
@@ -37,7 +38,7 @@ export default function UserPaymentsPage() {
           </span>
         </div>
 
-        {/* Region toggle */}
+        {/* Region toggle – match floating panel style */}
         <div className="mb-5">
           <div className="inline-flex items-center text-[11px] text-slate-400 mb-1">
             Choose your location
@@ -68,7 +69,7 @@ export default function UserPaymentsPage() {
           </div>
         </div>
 
-        {/* QR + details – match floating panel look & feel */}
+        {/* QR + details – synced with floating panel look */}
         <div className="flex flex-col md:flex-row gap-6 items-center md:items-stretch mb-5">
           <div className="bg-slate-950/90 border border-indigo-600/70 rounded-3xl shadow-[0_18px_40px_rgba(15,23,42,0.95)] p-4">
             <div className="bg-white rounded-2xl overflow-hidden flex items-center justify-center">
