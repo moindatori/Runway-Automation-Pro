@@ -90,9 +90,17 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 background: active
-                  ? "linear-gradient(90deg,#7c3aed,#4f46e5)"
+                  ? "linear-gradient(135deg,#9d4edd,#ff007f)"
                   : "transparent",
-                color: active ? "#f9fafb" : "#d1d5db"
+                color: active ? "#f9fafb" : "#d1d5db",
+                boxShadow: active
+                  ? "0 8px 20px rgba(148,27,128,0.55)"
+                  : "none",
+                border: active
+                  ? "1px solid rgba(236,72,153,0.8)"
+                  : "transparent",
+                transition:
+                  "background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s"
               }}
             >
               {item.label}
@@ -167,9 +175,7 @@ function StatCard({ title, value, helper, icon }) {
       <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>
         {value}
       </div>
-      {helper && (
-        <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>
-      )}
+      {helper && <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>}
     </div>
   );
 }
@@ -206,7 +212,12 @@ function FilterTabs({ current, setCurrent }) {
               cursor: "pointer",
               background: active ? "#ffffff" : "transparent",
               color: active ? "#111827" : "#6b7280",
-              fontWeight: active ? 600 : 500
+              fontWeight: active ? 600 : 500,
+              boxShadow: active
+                ? "0 6px 16px rgba(148,27,128,0.25)"
+                : "none",
+              transition:
+                "background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s"
             }}
           >
             {t.label}
@@ -237,7 +248,8 @@ export default function AdminPage({
 
   async function handlePaymentAction(id, action) {
     let label = "";
-    if (action === "approve_30") label = "approve this extension payment for 30 days?";
+    if (action === "approve_30")
+      label = "approve this extension payment for 30 days?";
     if (action === "reject") label = "reject this payment?";
     if (action === "cancel") label = "cancel this approved license now?";
 
@@ -291,20 +303,38 @@ export default function AdminPage({
 
   function generateNewToken() {
     const partA =
-      (typeof crypto !== "undefined" && crypto.randomUUID)
+      typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : `${Date.now().toString(16)}-${Math.random()
             .toString(16)
             .slice(2, 10)}`;
-    const partB = Math.random().toString(36).slice(2) +
+    const partB =
+      Math.random().toString(36).slice(2) +
       Math.random().toString(36).slice(2);
     const token = `${partA}.${partB}`;
     setGeneratedToken(token);
   }
 
+  const primaryButtonStyle = {
+    borderRadius: 999,
+    border: "1px solid rgba(236,72,153,0.8)",
+    padding: "6px 14px",
+    background: "linear-gradient(135deg,#9d4edd,#ff007f)",
+    color: "#fdf2ff",
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 600,
+    boxShadow: "0 10px 25px rgba(148,27,128,0.55)",
+    transition: "transform 0.15s, box-shadow 0.15s, filter 0.15s"
+  };
+
   return (
     <div
-      style={{ display: "flex", minHeight: "100vh", background: "#f3f4f6" }}
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "#0b1120"
+      }}
     >
       <Sidebar
         activeTab={activeTab}
@@ -312,7 +342,7 @@ export default function AdminPage({
         sessionEmail={sessionEmail}
       />
 
-      <main style={{ flex: 1, padding: "22px 28px" }}>
+      <main style={{ flex: 1, padding: "22px 28px", background: "#f3f4f6" }}>
         {activeTab === "dashboard" && (
           <>
             <header style={{ marginBottom: 20 }}>
@@ -611,7 +641,9 @@ export default function AdminPage({
                         padding: "5px 10px",
                         fontSize: 11,
                         cursor: "pointer",
-                        border: "none"
+                        border: "none",
+                        transition:
+                          "transform 0.15s, box-shadow 0.15s, filter 0.15s"
                       };
 
                       return (
@@ -817,7 +849,10 @@ export default function AdminPage({
                     padding: "7px 14px",
                     background: "#ffffff",
                     fontSize: 12,
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    boxShadow: "0 6px 16px rgba(15,23,42,0.08)",
+                    transition:
+                      "transform 0.15s, box-shadow 0.15s, filter 0.15s"
                   }}
                 >
                   Refresh
@@ -854,6 +889,8 @@ export default function AdminPage({
                       ? "green"
                       : p.status === "rejected"
                       ? "red"
+                      : p.status === "cancelled"
+                      ? "orange"
                       : "orange";
 
                   const planLabel =
@@ -997,17 +1034,7 @@ export default function AdminPage({
                               onClick={() =>
                                 handlePaymentAction(p.id, "approve_30")
                               }
-                              style={{
-                                borderRadius: 999,
-                                border: "none",
-                                padding: "6px 14px",
-                                background:
-                                  "linear-gradient(90deg,#22c55e,#4ade80)",
-                                color: "#022c22",
-                                cursor: "pointer",
-                                fontSize: 12,
-                                fontWeight: 600
-                              }}
+                              style={primaryButtonStyle}
                             >
                               Approve 30d
                             </button>
@@ -1023,7 +1050,11 @@ export default function AdminPage({
                                 color: "#b91c1c",
                                 cursor: "pointer",
                                 fontSize: 12,
-                                fontWeight: 500
+                                fontWeight: 500,
+                                boxShadow:
+                                  "0 8px 18px rgba(248,113,113,0.15)",
+                                transition:
+                                  "transform 0.15s, box-shadow 0.15s, filter 0.15s"
                               }}
                             >
                               Reject
@@ -1038,14 +1069,18 @@ export default function AdminPage({
                             }
                             style={{
                               borderRadius: 999,
-                              border: "1px solid #fecaca",
+                              border: "1px solid #fed7aa",
                               padding: "6px 14px",
                               background: "#fff7ed",
                               color: "#b45309",
                               cursor: "pointer",
                               fontSize: 12,
                               fontWeight: 500,
-                              marginTop: 4
+                              marginTop: 4,
+                              boxShadow:
+                                "0 8px 18px rgba(251,146,60,0.25)",
+                              transition:
+                                "transform 0.15s, box-shadow 0.15s, filter 0.15s"
                             }}
                           >
                             Cancel license
@@ -1184,16 +1219,9 @@ export default function AdminPage({
                   type="button"
                   onClick={generateNewToken}
                   style={{
-                    borderRadius: 999,
-                    border: "1px solid #e5e7eb",
-                    padding: "7px 14px",
-                    background:
-                      "linear-gradient(90deg,#6366f1,#8b5cf6)",
-                    color: "#f9fafb",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    boxShadow: "0 10px 25px rgba(79,70,229,0.25)"
+                    ...primaryButtonStyle,
+                    padding: "7px 18px",
+                    marginTop: 4
                   }}
                 >
                   Generate new random token
@@ -1252,7 +1280,7 @@ export async function getServerSideProps(context) {
   }
 
   try {
-    // Stats (existing subscriptions/payment_requests logic)
+    // Stats from subscriptions (includes extension subs we insert on approve_30)
     const statsRows = await sql`
       SELECT
         (SELECT COUNT(*) FROM users) AS total_users,
@@ -1271,7 +1299,7 @@ export async function getServerSideProps(context) {
       total_usd: 0
     };
 
-    // Users + latest subscription + latest device lock (existing)
+    // Users + latest subscription + latest device lock
     const usersRows = await sql`
       WITH latest_sub AS (
         SELECT DISTINCT ON (user_id)
@@ -1328,7 +1356,7 @@ export async function getServerSideProps(context) {
       };
     });
 
-    // Extension payments (NEW) – from extension_payments table
+    // Extension payments list
     let paymentsRows = [];
     try {
       paymentsRows = await sql`
