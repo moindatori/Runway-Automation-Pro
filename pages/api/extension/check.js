@@ -24,7 +24,7 @@ function setCors(res) {
 }
 
 // =============================
-// Device lock helper
+// Device lock helper (defensive)
 // =============================
 //
 // Rule:
@@ -34,70 +34,83 @@ function setCors(res) {
 //   * If previous lock older than 72 hours, auto-move to new device.
 //   * Otherwise: block with reason "device_locked" (admin reset karega).
 //
+// If device_locks table missing or any DB error occurs -> we log it and
+// simply allow (so API 500 na de, bus lock feature off ho jaye).
+//
 async function enforceDeviceLock(email, deviceId) {
-  // 1) If this device is already active, just update last_seen_at
-  const same = await sql`
-    SELECT id
-    FROM device_locks
-    WHERE user_email = ${email}
-      AND device_id = ${deviceId}
-      AND is_active = true
-    LIMIT 1;
-  `;
-  if (same.length > 0) {
-    await sql`
-      UPDATE device_locks
-      SET last_seen_at = now()
-      WHERE id = ${same[0].id};
-    `;
-    return { ok: true, reason: "same_device" };
+  if (!sql) {
+    return { ok: true, reason: "no_db" };
   }
 
-  // 2) Try to auto-expire any active lock older than 72 hours
-  const released = await sql`
-    UPDATE device_locks
-    SET is_active = false
-    WHERE user_email = ${email}
-      AND is_active = true
-      AND created_at < (now() - interval '72 hours')
-    RETURNING id;
-  `;
+  try {
+    // 1) Same device already active?
+    const same = await sql`
+      SELECT id
+      FROM device_locks
+      WHERE user_email = ${email}
+        AND device_id = ${deviceId}
+        AND is_active = true
+      LIMIT 1;
+    `;
+    if (same.length > 0) {
+      await sql`
+        UPDATE device_locks
+        SET last_seen_at = now()
+        WHERE id = ${same[0].id};
+      `;
+      return { ok: true, reason: "same_device" };
+    }
 
-  if (released.length > 0) {
-    // We freed the old device, now lock this new one
+    // 2) Auto-expire old locks (>72 hours)
+    const released = await sql`
+      UPDATE device_locks
+      SET is_active = false
+      WHERE user_email = ${email}
+        AND is_active = true
+        AND created_at < (now() - interval '72 hours')
+      RETURNING id;
+    `;
+
+    if (released.length > 0) {
+      // Freed old device → lock this one
+      const inserted = await sql`
+        INSERT INTO device_locks (user_email, device_id, is_active)
+        VALUES (${email}, ${deviceId}, true)
+        RETURNING id;
+      `;
+      return { ok: true, reason: "auto_switch", newLockId: inserted[0].id };
+    }
+
+    // 3) Still have some active lock (recent one) on another device
+    const active = await sql`
+      SELECT device_id, created_at
+      FROM device_locks
+      WHERE user_email = ${email}
+        AND is_active = true
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
+    if (active.length > 0) {
+      return {
+        ok: false,
+        reason: "device_locked",
+        activeDeviceId: active[0].device_id,
+        since: active[0].created_at,
+      };
+    }
+
+    // 4) No active lock at all → create a fresh one
     const inserted = await sql`
       INSERT INTO device_locks (user_email, device_id, is_active)
       VALUES (${email}, ${deviceId}, true)
       RETURNING id;
     `;
-    return { ok: true, reason: "auto_switch", newLockId: inserted[0].id };
+    return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
+  } catch (e) {
+    console.error("enforceDeviceLock error (device_locks missing?)", e);
+    // Fail-open: do NOT block user if lock table missing or broken
+    return { ok: true, reason: "lock_disabled" };
   }
-
-  // 3) Do we still have some active lock (i.e. recent one)?
-  const active = await sql`
-    SELECT device_id, created_at
-    FROM device_locks
-    WHERE user_email = ${email}
-      AND is_active = true
-    ORDER BY created_at DESC
-    LIMIT 1;
-  `;
-  if (active.length > 0) {
-    return {
-      ok: false,
-      reason: "device_locked",
-      activeDeviceId: active[0].device_id,
-      since: active[0].created_at,
-    };
-  }
-
-  // 4) No active lock at all → create a new one
-  const inserted = await sql`
-    INSERT INTO device_locks (user_email, device_id, is_active)
-    VALUES (${email}, ${deviceId}, true)
-    RETURNING id;
-  `;
-  return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
 }
 
 export default async function handler(req, res) {
@@ -175,13 +188,23 @@ export default async function handler(req, res) {
     // - status = 'approved' & valid_until in future -> active
     // - otherwise -> no_subscription
     //
-    const rows = await sql`
-      SELECT status, valid_until, region
-      FROM extension_payments
-      WHERE user_email = ${email}
-      ORDER BY created_at DESC
-      LIMIT 1;
-    `;
+    let rows = [];
+    try {
+      rows = await sql`
+        SELECT status, valid_until, region
+        FROM extension_payments
+        WHERE user_email = ${email}
+        ORDER BY created_at DESC
+        LIMIT 1;
+      `;
+    } catch (e) {
+      console.error(
+        "check.js payments lookup error (extension_payments missing?)",
+        e
+      );
+      // agar table hi nahi hai → treat as no subscription
+      rows = [];
+    }
 
     if (rows.length === 0) {
       return res.status(200).json({
