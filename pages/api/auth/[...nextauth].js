@@ -35,6 +35,27 @@ export const authOptions = {
       }
       return session;
     },
+
+    async redirect({ url, baseUrl }) {
+      // External / random domain par kabhi mat bhejna
+      if (!url.startsWith(baseUrl)) {
+        return baseUrl;
+      }
+
+      // Agar admin panel se login hua hai (callbackUrl = /admin)
+      if (url.includes("/admin")) {
+        return url;
+      }
+
+      // Agar user payment page se login hua hai
+      if (url.includes("/user/payments")) {
+        return url;
+      }
+
+      // Baaki sab (extension ka /api/auth/signin, normal login, etc.)
+      // ko safe extension-complete page par bhej do
+      return baseUrl + "/auth/extension-done";
+    },
   },
 
   // YAHAN se main cookie ko cross-site compatible bana raha hoon
