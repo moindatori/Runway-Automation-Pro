@@ -1,12 +1,13 @@
 // pages/api/extension/check.js
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
-// Allowed origin – yahan se content script request aa rahi hai
-const ALLOWED_ORIGINS = [
-  "https://app.runwayml.com", // Runway main app
-  process.env.NEXT_PUBLIC_ALLOWED_ORIGIN || "" // optional extra
-];
+const ALLOWED_ORIGINS = ["https://app.runwayml.com"];
+
+if (process.env.NEXT_PUBLIC_ALLOWED_ORIGIN) {
+  ALLOWED_ORIGINS.push(process.env.NEXT_PUBLIC_ALLOWED_ORIGIN);
+}
 
 function setCors(req, res) {
   const origin = req.headers.origin;
@@ -23,53 +24,45 @@ function setCors(req, res) {
 }
 
 export default async function handler(req, res) {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "Method not allowed" });
+  }
+
+  const { token, deviceId } = req.body || {};
+
+  // EXTENSION API TOKEN CHECK
+  if (!token || token !== process.env.EXTENSION_API_TOKEN) {
+    return res.status(401).json({ ok: false, error: "Bad token" });
+  }
+
   try {
-    // CORS headers every time
-    setCors(req, res);
-
-    // Preflight (OPTIONS) – must return 200, not 405
-    if (req.method === "OPTIONS") {
-      return res.status(200).end();
-    }
-
-    if (req.method !== "POST") {
-      return res
-        .status(405)
-        .json({ ok: false, error: "Method not allowed" });
-    }
-
-    const { token } = req.body || {};
-
-    // 1) Token check (matches env on Vercel)
-    if (!token || token !== process.env.EXTENSION_API_TOKEN) {
-      return res
-        .status(401)
-        .json({ ok: false, error: "Bad token" });
-    }
-
-    // 2) Google session check
+    // YE LINE asal magic hai: ye NextAuth ka login check karega (cookie se)
     const session = await getServerSession(req, res, authOptions);
+
+    console.log("[extension/check] session?", !!session, session?.user?.email, "deviceId:", deviceId);
+
+    // AGAR LOGIN NAHI:
     if (!session || !session.user?.email) {
-      // Extension ko batata hai ke user login nahi
-      return res
-        .status(200)
-        .json({ ok: false, reason: "not_logged_in" });
+      return res.status(200).json({ ok: false, reason: "not_logged_in" });
     }
 
-    // 3) TEST MODE:
-    // Abhi database use nahi kar rahe. Hamesha "no_subscription" return karo
-    // taa-ke extension payment UI show kare.
+    // TODO: yahan baad me DB se subscription check karna hai
+    // abhi ke liye: hamesha "no_subscription" bhej rahe hain
     return res.status(200).json({
       ok: true,
-      status: "no_subscription",
+      status: "no_subscription", // baad me "active" waghaira
       plan: null,
       daysRemaining: 0,
-      region: "PK"
+      region: "PK",
     });
-  } catch (e) {
-    console.error("extension/check error", e);
-    return res
-      .status(500)
-      .json({ ok: false, error: "internal_error" });
+  } catch (err) {
+    console.error("extension/check error", err);
+    return res.status(500).json({ ok: false, error: "internal_error" });
   }
 }

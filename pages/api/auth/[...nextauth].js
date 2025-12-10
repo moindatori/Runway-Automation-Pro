@@ -11,12 +11,33 @@ export const authOptions = {
     }),
   ],
 
-  // JWT based session (simple)
+  // Simple JWT session – user ka email hum token me rakhte hain
   session: {
     strategy: "jwt",
   },
 
-  // IMPORTANT: cookie config taake extension se cross-site request pe session mile
+  callbacks: {
+    async jwt({ token, account, user }) {
+      // First login ke waqt user ki info token me daal do
+      if (account && user) {
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      // Frontend / APIs ke liye session.user me email waghaira bhejo
+      if (token?.email) {
+        session.user = session.user || {};
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
+      return session;
+    },
+  },
+
+  // YAHAN se main cookie ko cross-site compatible bana raha hoon
   cookies: {
     sessionToken: {
       name:
@@ -26,7 +47,7 @@ export const authOptions = {
       options: {
         httpOnly: true,
         secure: true,     // https zaroori
-        sameSite: "none", // cross-site fetch allow (Runway -> backend)
+        sameSite: "none", // IMPORTANT: Runway (app.runwayml.com) se request aye to bhi cookie bheje
         path: "/",
       },
     },
