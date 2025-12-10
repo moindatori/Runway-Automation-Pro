@@ -7,7 +7,7 @@ import { neon } from "@neondatabase/serverless";
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const EXTENSION_API_TOKEN = process.env.EXTENSION_API_TOKEN;
 
-// Allowed origin: Runway web app
+// Allowed origin: Runway app
 const ALLOWED_ORIGIN =
   process.env.NODE_ENV === "production"
     ? "https://app.runwayml.com"
@@ -72,30 +72,43 @@ export default async function handler(req, res) {
     const normalizedRegion = region === "INT" ? "INT" : "PK";
 
     if (!sql) {
-      // DB not configured
       return res.status(500).json({
         ok: false,
         error: "Database not configured",
       });
     }
 
-    // Store payment request with status = pending
-    // Table expected:
-    // CREATE TABLE extension_payments (
-    //   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    //   device_id text NOT NULL,
-    //   user_email text NOT NULL,
-    //   region text NOT NULL,
-    //   tx_id text NOT NULL,
-    //   status text NOT NULL DEFAULT 'pending',
-    //   valid_until timestamptz,
-    //   created_at timestamptz DEFAULT now()
-    // );
+    // Optional: link to users table if it exists
+    let userId = null;
+    try {
+      const rowsUser = await sql`
+        SELECT id FROM users
+        WHERE email = ${email}
+        LIMIT 1
+      `;
+      if (rowsUser.length > 0) {
+        userId = rowsUser[0].id;
+      }
+    } catch (e) {
+      console.error("payment.js users lookup error", e);
+    }
+
+    // Store payment request in extension_payments
+    // Schema example:
+    // id uuid DEFAULT gen_random_uuid(),
+    // user_id uuid NULL,
+    // device_id text NOT NULL,
+    // user_email text NOT NULL,
+    // region text NOT NULL,
+    // tx_id text NOT NULL,
+    // status text NOT NULL DEFAULT 'pending',
+    // valid_until timestamptz NULL,
+    // created_at timestamptz DEFAULT now()
     await sql`
       INSERT INTO extension_payments
-        (device_id, user_email, region, tx_id, status)
+        (user_id, device_id, user_email, region, tx_id, status)
       VALUES
-        (${deviceId}, ${email}, ${normalizedRegion}, ${txId}, 'pending')
+        (${userId}, ${deviceId}, ${email}, ${normalizedRegion}, ${txId}, 'pending')
     `;
 
     return res.status(200).json({
