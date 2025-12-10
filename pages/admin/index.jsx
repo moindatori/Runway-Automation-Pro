@@ -51,7 +51,7 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
   const items = [
     { id: "dashboard", label: "Dashboard" },
     { id: "users", label: "Users" },
-    { id: "payments", label: "Payments" },
+    { id: "payments", label: "Extension payments" },
     { id: "settings", label: "Settings" }
   ];
 
@@ -69,7 +69,9 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
     >
       <div style={{ marginBottom: 26 }}>
         <div style={{ fontSize: 20, fontWeight: 800 }}>Admin Panel</div>
-        <div style={{ fontSize: 12, color: "#9ca3af" }}>Runway Prompt Studio</div>
+        <div style={{ fontSize: 12, color: "#9ca3af" }}>
+          Runway Prompt Studio
+        </div>
       </div>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -136,7 +138,13 @@ function StatCard({ title, value, helper, icon }) {
         minWidth: 0
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
         <div style={{ fontSize: 12, color: "#6b7280" }}>{title}</div>
         {icon && (
           <div
@@ -156,11 +164,11 @@ function StatCard({ title, value, helper, icon }) {
           </div>
         )}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>
+        {value}
+      </div>
       {helper && (
-        <div style={{ fontSize: 11, color: "#9ca3af" }}>
-          {helper}
-        </div>
+        <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>
       )}
     </div>
   );
@@ -209,9 +217,16 @@ function FilterTabs({ current, setCurrent }) {
   );
 }
 
-export default function AdminPage({ sessionEmail, stats, users, payments }) {
+export default function AdminPage({
+  sessionEmail,
+  stats,
+  users,
+  payments,
+  extTokenPreview
+}) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [generatedToken, setGeneratedToken] = useState("");
 
   const filteredPayments = useMemo(() => {
     if (paymentFilter === "all") return payments;
@@ -221,7 +236,13 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
   const pendingCount = payments.filter((p) => p.status === "pending").length;
 
   async function handlePaymentAction(id, action) {
-    if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+    let label = "";
+    if (action === "approve_30") label = "approve this extension payment for 30 days?";
+    if (action === "reject") label = "reject this payment?";
+    if (action === "cancel") label = "cancel this approved license now?";
+
+    if (!label || !confirm(`Are you sure you want to ${label}`)) return;
+
     try {
       const res = await fetch("/api/admin/payment-requests", {
         method: "POST",
@@ -229,7 +250,8 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
         body: JSON.stringify({ id, action })
       });
       if (!res.ok) {
-        alert("Error while updating payment");
+        const data = await res.json().catch(() => null);
+        alert(data?.error || "Error while updating extension payment");
         return;
       }
       window.location.reload();
@@ -242,8 +264,10 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
   async function handleUserAction(userId, action) {
     let msg = "";
     if (action === "reset_device") msg = "Reset device lock for this user?";
-    if (action === "extend_30") msg = "Extend active subscription by 30 days?";
-    if (action === "cancel_subscription") msg = "Cancel active subscription for this user?";
+    if (action === "extend_30")
+      msg = "Extend active subscription by 30 days?";
+    if (action === "cancel_subscription")
+      msg = "Cancel active subscription for this user?";
 
     if (msg && !confirm(msg)) return;
 
@@ -265,9 +289,28 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
     }
   }
 
+  function generateNewToken() {
+    const partA =
+      (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `${Date.now().toString(16)}-${Math.random()
+            .toString(16)
+            .slice(2, 10)}`;
+    const partB = Math.random().toString(36).slice(2) +
+      Math.random().toString(36).slice(2);
+    const token = `${partA}.${partB}`;
+    setGeneratedToken(token);
+  }
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f3f4f6" }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} sessionEmail={sessionEmail} />
+    <div
+      style={{ display: "flex", minHeight: "100vh", background: "#f3f4f6" }}
+    >
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sessionEmail={sessionEmail}
+      />
 
       <main style={{ flex: 1, padding: "22px 28px" }}>
         {activeTab === "dashboard" && (
@@ -282,7 +325,13 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
               >
                 Dashboard Overview
               </h1>
-              <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  marginTop: 4
+                }}
+              >
                 Monitor your platform performance, active users, and revenue.
               </p>
             </header>
@@ -337,10 +386,19 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                   padding: 16
                 }}
               >
-                <h2 style={{ fontSize: 16, margin: 0, marginBottom: 8 }}>Recent Activity</h2>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    margin: 0,
+                    marginBottom: 8
+                  }}
+                >
+                  Recent Activity
+                </h2>
                 <p style={{ fontSize: 13, color: "#6b7280" }}>
-                  Latest user registrations and subscription changes will appear here in future
-                  iterations. Right now you already see live stats above.
+                  Latest user registrations and subscription changes will
+                  appear here in future iterations. For now, you already see
+                  high-level stats above.
                 </p>
               </div>
 
@@ -352,18 +410,41 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                   padding: 16
                 }}
               >
-                <h2 style={{ fontSize: 16, margin: 0, marginBottom: 8 }}>System Health</h2>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    margin: 0,
+                    marginBottom: 8
+                  }}
+                >
+                  System Health
+                </h2>
                 <div style={{ display: "grid", rowGap: 6, fontSize: 13 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between"
+                    }}
+                  >
                     <span>API Status</span>
                     <Badge tone="green">Operational</Badge>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between"
+                    }}
+                  >
                     <span>Database</span>
                     <Badge tone="green">Connected</Badge>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>Payments</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between"
+                    }}
+                  >
+                    <span>Extension payments</span>
                     <Badge tone={pendingCount ? "orange" : "green"}>
                       {pendingCount ? `${pendingCount} pending` : "All clear"}
                     </Badge>
@@ -377,10 +458,24 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
         {activeTab === "users" && (
           <>
             <header style={{ marginBottom: 18 }}>
-              <h1 style={{ fontSize: 24, margin: 0, color: "#111827" }}>User Management</h1>
-              <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
-                View registered users, their devices and subscription status. Use admin actions to
-                reset device or manage subscription.
+              <h1
+                style={{
+                  fontSize: 24,
+                  margin: 0,
+                  color: "#111827"
+                }}
+              >
+                User Management
+              </h1>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  marginTop: 4
+                }}
+              >
+                View registered users, their devices and subscription status.
+                Use admin actions to reset device or manage subscription.
               </p>
             </header>
 
@@ -403,28 +498,84 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
               >
                 <thead>
                   <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       User
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Subscription
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Status
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Remaining days
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Device ID
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Device updated
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Registered
                     </th>
-                    <th style={{ textAlign: "left", padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px 6px",
+                        fontSize: 12,
+                        color: "#6b7280"
+                      }}
+                    >
                       Actions
                     </th>
                   </tr>
@@ -432,7 +583,10 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                 <tbody>
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: "10px 6px", color: "#6b7280" }}>
+                      <td
+                        colSpan={8}
+                        style={{ padding: "10px 6px", color: "#6b7280" }}
+                      >
                         No users yet.
                       </td>
                     </tr>
@@ -461,48 +615,104 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                       };
 
                       return (
-                        <tr key={u.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <tr
+                          key={u.id}
+                          style={{ borderBottom: "1px solid #f3f4f6" }}
+                        >
                           <td style={{ padding: "8px 6px" }}>
-                            <div style={{ fontWeight: 600 }}>{u.name || u.email}</div>
-                            <div style={{ fontSize: 11, color: "#6b7280" }}>{u.email}</div>
+                            <div style={{ fontWeight: 600 }}>
+                              {u.name || u.email}
+                            </div>
+                            <div
+                              style={{ fontSize: 11, color: "#6b7280" }}
+                            >
+                              {u.email}
+                            </div>
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             {u.plan_code ? (
                               <Badge tone="blue">{u.plan_code}</Badge>
                             ) : (
-                              <span style={{ fontSize: 12, color: "#9ca3af" }}>No plan</span>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                No plan
+                              </span>
                             )}
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             {u.sub_status ? (
-                              <Badge tone={statusTone}>{u.sub_status}</Badge>
+                              <Badge tone={statusTone}>
+                                {u.sub_status}
+                              </Badge>
                             ) : (
                               <Badge>No subscription</Badge>
                             )}
                           </td>
-                          <td style={{ padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
-                            {u.daysRemaining != null ? `${u.daysRemaining} days` : "-"}
-                          </td>
-                          <td style={{ padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
-                            {deviceShort}
-                          </td>
-                          <td style={{ padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
-                            {u.last_updated
-                              ? new Date(u.last_updated).toLocaleString()
+                          <td
+                            style={{
+                              padding: "8px 6px",
+                              fontSize: 12,
+                              color: "#6b7280"
+                            }}
+                          >
+                            {u.daysRemaining != null
+                              ? `${u.daysRemaining} days`
                               : "-"}
                           </td>
-                          <td style={{ padding: "8px 6px", fontSize: 12, color: "#6b7280" }}>
-                            {new Date(u.created_at).toLocaleDateString()}
+                          <td
+                            style={{
+                              padding: "8px 6px",
+                              fontSize: 12,
+                              color: "#6b7280"
+                            }}
+                          >
+                            {deviceShort}
+                          </td>
+                          <td
+                            style={{
+                              padding: "8px 6px",
+                              fontSize: 12,
+                              color: "#6b7280"
+                            }}
+                          >
+                            {u.last_updated
+                              ? new Date(
+                                  u.last_updated
+                                ).toLocaleString()
+                              : "-"}
+                          </td>
+                          <td
+                            style={{
+                              padding: "8px 6px",
+                              fontSize: 12,
+                              color: "#6b7280"
+                            }}
+                          >
+                            {new Date(
+                              u.created_at
+                            ).toLocaleDateString()}
                           </td>
                           <td style={{ padding: "8px 6px" }}>
-                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 6,
+                                flexWrap: "wrap"
+                              }}
+                            >
                               <button
                                 style={{
                                   ...actionBtnBase,
                                   background: "#eef2ff",
                                   color: "#4f46e5"
                                 }}
-                                onClick={() => handleUserAction(u.id, "reset_device")}
+                                onClick={() =>
+                                  handleUserAction(u.id, "reset_device")
+                                }
                               >
                                 Reset device
                               </button>
@@ -513,9 +723,14 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                                   background: "#dcfce7",
                                   color: "#166534",
                                   opacity: hasActive ? 1 : 0.4,
-                                  cursor: hasActive ? "pointer" : "not-allowed"
+                                  cursor: hasActive
+                                    ? "pointer"
+                                    : "not-allowed"
                                 }}
-                                onClick={() => hasActive && handleUserAction(u.id, "extend_30")}
+                                onClick={() =>
+                                  hasActive &&
+                                  handleUserAction(u.id, "extend_30")
+                                }
                               >
                                 Extend 30d
                               </button>
@@ -526,10 +741,16 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                                   background: "#fee2e2",
                                   color: "#b91c1c",
                                   opacity: hasActive ? 1 : 0.4,
-                                  cursor: hasActive ? "pointer" : "not-allowed"
+                                  cursor: hasActive
+                                    ? "pointer"
+                                    : "not-allowed"
                                 }}
                                 onClick={() =>
-                                  hasActive && handleUserAction(u.id, "cancel_subscription")
+                                  hasActive &&
+                                  handleUserAction(
+                                    u.id,
+                                    "cancel_subscription"
+                                  )
                                 }
                               >
                                 Cancel sub
@@ -557,13 +778,37 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
               }}
             >
               <div>
-                <h1 style={{ fontSize: 24, margin: 0, color: "#111827" }}>Payment Requests</h1>
-                <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
-                  Review all QR payments. Filter by status and approve or reject.
+                <h1
+                  style={{
+                    fontSize: 24,
+                    margin: 0,
+                    color: "#111827"
+                  }}
+                >
+                  Extension Payment Requests
+                </h1>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#6b7280",
+                    marginTop: 4
+                  }}
+                >
+                  Review QR payments from the Chrome extension and approve or
+                  reject licenses.
                 </p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <FilterTabs current={paymentFilter} setCurrent={setPaymentFilter} />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12
+                }}
+              >
+                <FilterTabs
+                  current={paymentFilter}
+                  setCurrent={setPaymentFilter}
+                />
                 <button
                   onClick={() => window.location.reload()}
                   style={{
@@ -600,7 +845,7 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                     color: "#6b7280"
                   }}
                 >
-                  No payments in this filter.
+                  No extension payments in this filter.
                 </div>
               ) : (
                 filteredPayments.map((p) => {
@@ -610,6 +855,31 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                       : p.status === "rejected"
                       ? "red"
                       : "orange";
+
+                  const planLabel =
+                    p.region === "INT"
+                      ? "$10 / 30 days (International)"
+                      : "Rs1000 / 30 days (Pakistan)";
+
+                  const deviceShort =
+                    p.device_id && p.device_id.length > 18
+                      ? `${p.device_id.slice(0, 18)}…`
+                      : p.device_id || "-";
+
+                  let statusHelper = "";
+                  if (p.status === "approved") {
+                    statusHelper = p.valid_until
+                      ? `Active until ${new Date(
+                          p.valid_until
+                        ).toLocaleDateString()}`
+                      : "Approved (no expiry set)";
+                  } else if (p.status === "pending") {
+                    statusHelper = "Waiting for manual review";
+                  } else if (p.status === "rejected") {
+                    statusHelper = "Rejected";
+                  } else if (p.status === "cancelled") {
+                    statusHelper = "Cancelled";
+                  }
 
                   return (
                     <div
@@ -628,15 +898,21 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                       <div style={{ flex: 1 }}>
                         <div style={{ marginBottom: 6 }}>
                           <div style={{ fontWeight: 600 }}>{p.email}</div>
-                          <div style={{ fontSize: 11, color: "#6b7280" }}>
-                            Plan: {p.plan_code} • {p.currency} {Number(p.amount_numeric)}
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "#6b7280"
+                            }}
+                          >
+                            Region: {p.region || "-"} • {planLabel}
                           </div>
                         </div>
 
                         <div
                           style={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                            gridTemplateColumns:
+                              "repeat(2,minmax(0,1fr))",
                             columnGap: 24,
                             rowGap: 4,
                             fontSize: 12,
@@ -644,26 +920,56 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                           }}
                         >
                           <div>
-                            <div style={{ fontSize: 11, color: "#9ca3af" }}>Transaction ID</div>
-                            <div style={{ fontFamily: "monospace" }}>{p.tx_id}</div>
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 11, color: "#9ca3af" }}>Created at</div>
-                            <div>{new Date(p.created_at).toLocaleString()}</div>
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 11, color: "#9ca3af" }}>Note</div>
-                            <div>{p.note || "-"}</div>
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 11, color: "#9ca3af" }}>Reviewed</div>
-                            <div>
-                              {p.reviewed_at
-                                ? `${p.reviewed_by || ""} • ${new Date(
-                                    p.reviewed_at
-                                  ).toLocaleString()}`
-                                : "-"}
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              Transaction ID
                             </div>
+                            <div style={{ fontFamily: "monospace" }}>
+                              {p.tx_id}
+                            </div>
+                          </div>
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              Created at
+                            </div>
+                            <div>
+                              {new Date(
+                                p.created_at
+                              ).toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              Device ID
+                            </div>
+                            <div style={{ fontFamily: "monospace" }}>
+                              {deviceShort}
+                            </div>
+                          </div>
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              License status
+                            </div>
+                            <div>{statusHelper}</div>
                           </div>
                         </div>
                       </div>
@@ -674,15 +980,23 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                           flexDirection: "column",
                           alignItems: "flex-end",
                           gap: 8,
-                          minWidth: 140
+                          minWidth: 160
                         }}
                       >
                         <Badge tone={tone}>{p.status}</Badge>
 
                         {p.status === "pending" && (
-                          <div style={{ display: "flex", gap: 6 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 6,
+                              marginTop: 4
+                            }}
+                          >
                             <button
-                              onClick={() => handlePaymentAction(p.id, "approve")}
+                              onClick={() =>
+                                handlePaymentAction(p.id, "approve_30")
+                              }
                               style={{
                                 borderRadius: 999,
                                 border: "none",
@@ -695,10 +1009,12 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                                 fontWeight: 600
                               }}
                             >
-                              Approve
+                              Approve 30d
                             </button>
                             <button
-                              onClick={() => handlePaymentAction(p.id, "reject")}
+                              onClick={() =>
+                                handlePaymentAction(p.id, "reject")
+                              }
                               style={{
                                 borderRadius: 999,
                                 border: "1px solid #fecaca",
@@ -714,6 +1030,27 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                             </button>
                           </div>
                         )}
+
+                        {p.status === "approved" && (
+                          <button
+                            onClick={() =>
+                              handlePaymentAction(p.id, "cancel")
+                            }
+                            style={{
+                              borderRadius: 999,
+                              border: "1px solid #fecaca",
+                              padding: "6px 14px",
+                              background: "#fff7ed",
+                              color: "#b45309",
+                              cursor: "pointer",
+                              fontSize: 12,
+                              fontWeight: 500,
+                              marginTop: 4
+                            }}
+                          >
+                            Cancel license
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -726,9 +1063,24 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
         {activeTab === "settings" && (
           <>
             <header style={{ marginBottom: 16 }}>
-              <h1 style={{ fontSize: 24, margin: 0, color: "#111827" }}>Settings</h1>
-              <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
-                Internal configuration for your billing backend.
+              <h1
+                style={{
+                  fontSize: 24,
+                  margin: 0,
+                  color: "#111827"
+                }}
+              >
+                Settings
+              </h1>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  marginTop: 4
+                }}
+              >
+                Internal configuration for your billing backend and
+                extension API.
               </p>
             </header>
 
@@ -740,25 +1092,146 @@ export default function AdminPage({ sessionEmail, stats, users, payments }) {
                 padding: 16
               }}
             >
-              <h2 style={{ fontSize: 16, margin: "0 0 8px" }}>Environment</h2>
-              <ul style={{ fontSize: 13, color: "#4b5563", paddingLeft: 18 }}>
+              <h2
+                style={{
+                  fontSize: 16,
+                  margin: "0 0 8px"
+                }}
+              >
+                Environment
+              </h2>
+              <ul
+                style={{
+                  fontSize: 13,
+                  color: "#4b5563",
+                  paddingLeft: 18
+                }}
+              >
                 <li>
                   <b>Admin email:</b> {sessionEmail}
                 </li>
                 <li>
-                  <b>Neon database:</b> configured via <code>DATABASE_URL</code>
+                  <b>Neon database:</b> configured via{" "}
+                  <code>DATABASE_URL</code>
                 </li>
                 <li>
-                  <b>Google OAuth:</b> using <code>GOOGLE_CLIENT_ID</code> /
+                  <b>Google OAuth:</b> using{" "}
+                  <code>GOOGLE_CLIENT_ID</code> /
                   <code> GOOGLE_CLIENT_SECRET</code>
                 </li>
                 <li>
-                  <b>Extension signing:</b> <code>EXTENSION_TOKEN_SECRET</code>
+                  <b>Extension token env:</b>{" "}
+                  <code>EXTENSION_API_TOKEN</code>
                 </li>
               </ul>
-              <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8 }}>
-                Later we can add more advanced actions (export CSV, audit logs, etc.).
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#9ca3af",
+                  marginTop: 8
+                }}
+              >
+                For any changes to environment variables, update them in
+                Vercel and redeploy.
               </p>
+
+              <div
+                style={{
+                  marginTop: 16,
+                  paddingTop: 14,
+                  borderTop: "1px solid #e5e7eb"
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: 16,
+                    margin: "0 0 6px"
+                  }}
+                >
+                  Extension API token helper
+                </h2>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#4b5563",
+                    marginBottom: 8
+                  }}
+                >
+                  This shows a masked preview of the token used by the
+                  extension and lets you generate new random tokens which
+                  you can copy into Vercel and your Chrome extension
+                  config.
+                </p>
+
+                <div
+                  style={{
+                    fontSize: 13,
+                    marginBottom: 8
+                  }}
+                >
+                  <b>Current token (preview):</b>{" "}
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      color: "#111827"
+                    }}
+                  >
+                    {extTokenPreview || "Not set"}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={generateNewToken}
+                  style={{
+                    borderRadius: 999,
+                    border: "1px solid #e5e7eb",
+                    padding: "7px 14px",
+                    background:
+                      "linear-gradient(90deg,#6366f1,#8b5cf6)",
+                    color: "#f9fafb",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    boxShadow: "0 10px 25px rgba(79,70,229,0.25)"
+                  }}
+                >
+                  Generate new random token
+                </button>
+
+                {generatedToken && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 12,
+                      background: "#f3f4f6",
+                      borderRadius: 8,
+                      padding: 10,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <div
+                      style={{
+                        marginBottom: 4,
+                        color: "#4b5563"
+                      }}
+                    >
+                      Copy this value to{" "}
+                      <code>EXTENSION_API_TOKEN</code> in Vercel and to
+                      your Chrome extension build:
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "monospace",
+                        wordBreak: "break-all",
+                        color: "#111827"
+                      }}
+                    >
+                      {generatedToken}
+                    </div>
+                  </div>
+                )}
+              </div>
             </section>
           </>
         )}
@@ -779,7 +1252,7 @@ export async function getServerSideProps(context) {
   }
 
   try {
-    // Stats
+    // Stats (existing subscriptions/payment_requests logic)
     const statsRows = await sql`
       SELECT
         (SELECT COUNT(*) FROM users) AS total_users,
@@ -798,7 +1271,7 @@ export async function getServerSideProps(context) {
       total_usd: 0
     };
 
-    // Users + latest subscription + latest device lock
+    // Users + latest subscription + latest device lock (existing)
     const usersRows = await sql`
       WITH latest_sub AS (
         SELECT DISTINCT ON (user_id)
@@ -855,40 +1328,52 @@ export async function getServerSideProps(context) {
       };
     });
 
-    // All payments
-    const paymentsRows = await sql`
-      SELECT
-        pr.id,
-        pr.user_id,
-        pr.plan_code,
-        pr.currency,
-        pr.amount_numeric,
-        pr.tx_id,
-        pr.note,
-        pr.status,
-        pr.reviewed_by,
-        pr.reviewed_at,
-        pr.created_at,
-        u.email
-      FROM payment_requests pr
-      JOIN users u ON u.id = pr.user_id
-      ORDER BY pr.created_at DESC
-    `;
+    // Extension payments (NEW) – from extension_payments table
+    let paymentsRows = [];
+    try {
+      paymentsRows = await sql`
+        SELECT
+          id,
+          user_email,
+          device_id,
+          region,
+          tx_id,
+          status,
+          valid_until,
+          created_at
+        FROM extension_payments
+        ORDER BY created_at DESC
+      `;
+    } catch (err) {
+      console.error(
+        "admin getServerSideProps extension_payments query error",
+        err
+      );
+      paymentsRows = [];
+    }
 
     const payments = paymentsRows.map((p) => ({
       id: p.id,
-      user_id: p.user_id,
-      email: p.email,
-      plan_code: p.plan_code,
-      currency: p.currency,
-      amount_numeric: Number(p.amount_numeric),
+      email: p.user_email,
+      device_id: p.device_id,
+      region: p.region,
       tx_id: p.tx_id,
-      note: p.note,
       status: p.status,
-      reviewed_by: p.reviewed_by,
-      reviewed_at: p.reviewed_at,
+      valid_until: p.valid_until,
       created_at: p.created_at
     }));
+
+    // Masked preview of EXTENSION_API_TOKEN
+    const rawToken = process.env.EXTENSION_API_TOKEN || "";
+    let extTokenPreview = null;
+    if (rawToken) {
+      if (rawToken.length > 14) {
+        extTokenPreview =
+          rawToken.slice(0, 6) + "••••" + rawToken.slice(-4);
+      } else {
+        extTokenPreview = rawToken.replace(/.(?=.{4})/g, "•");
+      }
+    }
 
     return {
       props: {
@@ -900,11 +1385,23 @@ export async function getServerSideProps(context) {
           totalUsd: Number(row.total_usd || 0)
         },
         users,
-        payments
+        payments,
+        extTokenPreview
       }
     };
   } catch (err) {
     console.error("admin getServerSideProps error", err);
+    const rawToken = process.env.EXTENSION_API_TOKEN || "";
+    let extTokenPreview = null;
+    if (rawToken) {
+      if (rawToken.length > 14) {
+        extTokenPreview =
+          rawToken.slice(0, 6) + "••••" + rawToken.slice(-4);
+      } else {
+        extTokenPreview = rawToken.replace(/.(?=.{4})/g, "•");
+      }
+    }
+
     return {
       props: {
         sessionEmail: session.user.email,
@@ -915,7 +1412,8 @@ export async function getServerSideProps(context) {
           totalUsd: 0
         },
         users: [],
-        payments: []
+        payments: [],
+        extTokenPreview
       }
     };
   }
