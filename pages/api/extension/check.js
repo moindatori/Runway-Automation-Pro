@@ -24,45 +24,68 @@ function setCors(res) {
 }
 
 /**
- * DEVICE LOCK RULES
- * -----------------
- * - We work in terms of user_id (from users table) + device_id.
- * - At most ONE active device per user (device_locks.is_active = true).
- * - If same device_id → just update last_updated and allow.
- * - If different device_id:
- *    * If active lock older than 72 hours → auto-release old lock and create new one.
- *    * Otherwise → block with reason "device_locked".
- *
- * SCHEMA ASSUMED:
- *   device_locks(
- *     id serial,
- *     user_id uuid/int,
- *     device_id text,
- *     is_active boolean default true,
- *     created_at timestamp default now(),
- *     last_updated timestamp default now()
- *   )
+ * Make sure we have a users.id for this email
+ * (uses ON CONFLICT if email is unique; otherwise will just insert once)
  */
-async function enforceDeviceLock(email, deviceId) {
-  if (!sql) {
-    return { ok: true, reason: "no_db" };
+async function ensureUser(email, name) {
+  if (!sql) return null;
+
+  // Try to find existing user
+  const existing = await sql`
+    SELECT id
+    FROM users
+    WHERE email = ${email}
+    LIMIT 1;
+  `;
+  if (existing.length > 0) {
+    return existing[0].id;
+  }
+
+  // If email is UNIQUE, this ON CONFLICT is safe.
+  // If not, you can drop ON CONFLICT and just keep a single INSERT.
+  const inserted = await sql`
+    INSERT INTO users (email, name)
+    VALUES (${email}, ${name || null})
+    ON CONFLICT (email) DO UPDATE
+      SET name = EXCLUDED.name
+    RETURNING id;
+  `;
+
+  return inserted[0]?.id || null;
+}
+
+/**
+ * Strict device lock:
+ * - Only ONE active device per user_id.
+ * - A device_id CANNOT be active for two different users at the same time.
+ * - Old locks (>72h) for that user are auto-released so user can move to a new device.
+ */
+async function enforceDeviceLock(userId, deviceId) {
+  if (!sql || !userId || !deviceId) {
+    // If DB or ids are missing, do not block – fail-open
+    return { ok: true, reason: "no_db_or_ids" };
   }
 
   try {
-    // 0) Map email -> user_id
-    const userRows = await sql`
-      SELECT id
-      FROM users
-      WHERE email = ${email}
+    // 0) Is this device already locked to ANOTHER user?
+    const conflict = await sql`
+      SELECT user_id
+      FROM device_locks
+      WHERE device_id = ${deviceId}
+        AND is_active = true
+        AND user_id <> ${userId}
       LIMIT 1;
     `;
-    if (userRows.length === 0) {
-      // If we don't have a user row yet, don't block; let NextAuth create it later.
-      return { ok: true, reason: "no_user_row" };
+    if (conflict.length > 0) {
+      // Device already linked to another user → hard block
+      return {
+        ok: false,
+        reason: "device_locked",
+        message: "This device is already licensed to another account."
+      };
     }
-    const userId = userRows[0].id;
 
-    // 1) Same device already active?
+    // 1) Same device + same user already active → just update last_seen_at
     const same = await sql`
       SELECT id
       FROM device_locks
@@ -80,7 +103,7 @@ async function enforceDeviceLock(email, deviceId) {
       return { ok: true, reason: "same_device" };
     }
 
-    // 2) Auto-expire old locks (>72 hours) for this user
+    // 2) Auto-expire any active lock for this user older than 72 hours
     const released = await sql`
       UPDATE device_locks
       SET is_active = false
@@ -91,16 +114,16 @@ async function enforceDeviceLock(email, deviceId) {
     `;
 
     if (released.length > 0) {
-      // Freed old device → lock this new one
+      // Old device freed, now lock this new one
       const inserted = await sql`
-        INSERT INTO device_locks (user_id, device_id, is_active, last_updated)
-        VALUES (${userId}, ${deviceId}, true, now())
+        INSERT INTO device_locks (user_id, device_id, is_active)
+        VALUES (${userId}, ${deviceId}, true)
         RETURNING id;
       `;
       return { ok: true, reason: "auto_switch", newLockId: inserted[0].id };
     }
 
-    // 3) Still have some active lock (recent) on another device
+    // 3) Still have some active lock (recent) → different device → block
     const active = await sql`
       SELECT device_id, created_at
       FROM device_locks
@@ -118,16 +141,16 @@ async function enforceDeviceLock(email, deviceId) {
       };
     }
 
-    // 4) No active lock at all → create a fresh one
+    // 4) No active lock at all → create new lock for this device
     const inserted = await sql`
-      INSERT INTO device_locks (user_id, device_id, is_active, last_updated)
-      VALUES (${userId}, ${deviceId}, true, now())
+      INSERT INTO device_locks (user_id, device_id, is_active)
+      VALUES (${userId}, ${deviceId}, true)
       RETURNING id;
     `;
     return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
   } catch (e) {
-    console.error("enforceDeviceLock error (device_locks missing/mismatch?)", e);
-    // Fail-open: do NOT block user if lock table missing or wrong shape
+    console.error("enforceDeviceLock error (device_locks issue?)", e);
+    // Fail-open: if lock table is missing/broken, do NOT block usage
     return { ok: true, reason: "lock_disabled" };
   }
 }
@@ -170,7 +193,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // User must be logged in with Google (same as /api/extension/payment)
+    // Must be logged in with Google
     const session = await getServerSession(req, res, authOptions);
     if (!session || !session.user?.email) {
       return res.status(200).json({
@@ -180,26 +203,27 @@ export default async function handler(req, res) {
     }
 
     const email = session.user.email;
+    const name = session.user.name || null;
 
-    // =============================
-    // 1) Enforce device lock
-    // =============================
-    const lockResult = await enforceDeviceLock(email, deviceId);
+    // 0) Ensure we have a users.id for this email
+    const userId = await ensureUser(email, name);
+
+    // 1) Enforce device lock (per user and per device)
+    const lockResult = await enforceDeviceLock(userId, deviceId);
     if (!lockResult.ok) {
-      // Device mismatch and under 72 hours
+      // Device mismatch or device already bound to another user
       return res.status(200).json({
         ok: false,
         reason: "device_locked",
         message:
+          lockResult.message ||
           "Your license is locked to another device. Please request a device reset from admin.",
         activeDeviceId: lockResult.activeDeviceId || null,
         since: lockResult.since || null
       });
     }
 
-    // =============================
-    // 2) Check subscription status from extension_payments
-    // =============================
+    // 2) Check subscription status from extension_payments for this email
     let rows = [];
     try {
       rows = await sql`
@@ -218,6 +242,7 @@ export default async function handler(req, res) {
     }
 
     if (rows.length === 0) {
+      // No payments yet → no subscription
       return res.status(200).json({
         ok: true,
         status: "no_subscription",
@@ -241,7 +266,7 @@ export default async function handler(req, res) {
       );
       isActive = diffMs > 0 && row.status === "approved";
     } else {
-      // If no valid_until column set, treat approved as active (lifetime or manual)
+      // Approved with no valid_until → treat as manually active
       isActive = row.status === "approved";
     }
 
