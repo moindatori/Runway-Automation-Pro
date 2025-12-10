@@ -1,176 +1,138 @@
 // pages/user/payments.js
 
-import Image from "next/image";
-import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../api/auth/[...nextauth]";
+import { useState } from "react";
 
-export async function getServerSideProps(context) {
-  const session = await getServerSession(
-    context.req,
-    context.res,
-    authOptions
-  );
+export default function UserPaymentsPage() {
+  const [region, setRegion] = useState<"PK" | "INT">("PK");
 
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  const safeSession = {
-    user: {
-      name: session.user?.name || null,
-      email: session.user?.email || null,
-    },
-  };
-
-  return {
-    props: {
-      session: safeSession,
-    },
-  };
-}
-
-export default function UserPayments({ session }) {
-  const userLabel =
-    session.user?.name
-      ? `${session.user.name} (${session.user.email})`
-      : session.user?.email;
+  const isPK = region === "PK";
+  const qrUrl = isPK ? "/qr/pk_1000.png" : "/qr/intl_10usd.png";
+  const amountText = isPK ? "Rs1000 / 30 days" : "$10 / 30 days";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 px-4 py-8 flex justify-center">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="w-full max-w-3xl rounded-3xl border border-slate-800 bg-slate-900/90 px-6 py-7 shadow-[0_25px_80px_rgba(15,23,42,0.9)]">
         {/* Header */}
-        <header className="flex items-center justify-between mb-6">
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Subscription payment
+            <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
+              Runway Prompt Studio
+            </p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight">
+              Extension subscription payment
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Scan the QR code with your banking app and complete the payment.
-              After that, paste your transaction ID inside the Chrome extension
-              panel.
+            <p className="mt-1 text-xs text-slate-400">
+              Use this page only to view payment QR codes and instructions.
+              <span className="block">
+                The actual transaction ID must be submitted{" "}
+                <span className="font-semibold text-slate-200">
+                  inside the Chrome extension panel
+                </span>
+                .
+              </span>
             </p>
           </div>
-
-          <div className="text-right">
-            <p className="text-xs text-slate-400">Signed in as</p>
-            <p className="text-xs font-medium text-slate-200">{userLabel}</p>
-          </div>
-        </header>
-
-        {/* Main layout */}
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,2fr)] gap-6">
-          {/* Pakistan plan */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🇵🇰</span>
-                <div>
-                  <p className="text-sm font-semibold">Pakistan plan</p>
-                  <p className="text-xs text-slate-400">
-                    Rs1000 &mdash; 30 days access
-                  </p>
-                </div>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-300 text-[11px] px-2 py-0.5 border border-emerald-500/40">
-                Bank transfer / QR code
-              </span>
-            </div>
-
-            <div className="mt-3 flex flex-col items-center gap-3">
-              <div className="bg-slate-950 rounded-2xl p-3 border border-slate-800 shadow-lg">
-                <Image
-                  src="/qr/pk_1000.png"
-                  alt="Pakistan QR Rs1000"
-                  width={260}
-                  height={260}
-                  className="rounded-xl bg-white"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400 text-center max-w-xs">
-                Scan this QR code with your Pakistani banking app or wallet and
-                pay <span className="font-semibold">Rs1000</span> for 30 days
-                subscription.
-              </p>
-            </div>
-          </section>
-
-          {/* International plan */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🌐</span>
-                <div>
-                  <p className="text-sm font-semibold">International plan</p>
-                  <p className="text-xs text-slate-400">
-                    $10 &mdash; 30 days access
-                  </p>
-                </div>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-sky-500/10 text-sky-300 text-[11px] px-2 py-0.5 border border-sky-500/40">
-                Bank transfer / QR code
-              </span>
-            </div>
-
-            <div className="mt-3 flex flex-col items-center gap-3">
-              <div className="bg-slate-950 rounded-2xl p-3 border border-slate-800 shadow-lg">
-                <Image
-                  src="/qr/intl_10usd.png"
-                  alt="International QR $10"
-                  width={260}
-                  height={260}
-                  className="rounded-xl bg-white"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400 text-center max-w-xs">
-                Scan this QR code with your international payment app and pay{" "}
-                <span className="font-semibold">$10</span> for 30 days
-                subscription.
-              </p>
-            </div>
-          </section>
+          <span className="text-[10px] px-3 py-1 rounded-full border border-slate-700 text-slate-300 bg-slate-900">
+            Manual verification
+          </span>
         </div>
 
-        {/* Instructions */}
-        <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-          <h2 className="text-sm font-semibold mb-2">How to confirm payment</h2>
-          <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1">
-            <li>Scan the correct QR code and complete the payment.</li>
-            <li>
-              Note down the transaction ID from your banking confirmation
-              screen.
-            </li>
-            <li>
-              Go to <span className="font-mono text-slate-200">
-                app.runwayml.com
-              </span>{" "}
-              and open the Runway Prompt Studio extension panel.
-            </li>
-            <li>
-              In the panel, paste your transaction ID into the{" "}
-              <span className="font-semibold">Transaction ID</span> field and
-              click <span className="font-semibold">Submit payment request</span>.
-            </li>
-          </ol>
-
-          <div className="mt-4 flex justify-between items-center text-[11px] text-slate-500">
-            <p>
-              Your request will be reviewed manually. Once approved, the
-              extension will unlock automatically on your device.
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center px-3 py-1.5 rounded-full border border-slate-700 text-[11px] hover:bg-slate-800"
-            >
-              Back to home
-            </Link>
+        {/* Region toggle */}
+        <div className="mb-5">
+          <div className="inline-flex items-center text-[11px] text-slate-400 mb-1">
+            Choose your location
           </div>
-        </section>
+          <div className="flex gap-2 bg-slate-950 border border-slate-800 rounded-full p-1 w-full max-w-xs">
+            <button
+              type="button"
+              onClick={() => setRegion("PK")}
+              className={`flex-1 rounded-full px-3 py-2 text-[11px] font-medium border ${
+                isPK
+                  ? "bg-emerald-400 text-slate-900 border-emerald-300"
+                  : "bg-transparent text-slate-200 border-transparent"
+              }`}
+            >
+              🇵🇰 Pakistan
+            </button>
+            <button
+              type="button"
+              onClick={() => setRegion("INT")}
+              className={`flex-1 rounded-full px-3 py-2 text-[11px] font-medium border ${
+                !isPK
+                  ? "bg-sky-400 text-slate-900 border-sky-300"
+                  : "bg-transparent text-slate-200 border-transparent"
+              }`}
+            >
+              🌐 International
+            </button>
+          </div>
+        </div>
+
+        {/* QR + details – match floating panel look & feel */}
+        <div className="flex flex-col md:flex-row gap-6 items-center md:items-stretch mb-5">
+          <div className="bg-slate-950/90 border border-indigo-600/70 rounded-3xl shadow-[0_18px_40px_rgba(15,23,42,0.95)] p-4">
+            <div className="bg-white rounded-2xl overflow-hidden flex items-center justify-center">
+              <img
+                src={qrUrl}
+                alt="Payment QR"
+                className="w-[260px] h-[260px] object-contain"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-[180px] flex flex-col gap-3">
+            <div>
+              <div className="text-sm font-semibold mb-1">Payment details</div>
+              <div className="text-xs text-slate-200 mb-1">
+                Plan:{" "}
+                <span className="font-semibold text-emerald-300">
+                  {amountText}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400">
+                Method: QR / bank transfer, with manual review.
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-300 border border-slate-700 rounded-2xl bg-slate-950 px-3 py-3 leading-relaxed">
+              <div className="font-semibold text-slate-200 mb-1">
+                How to pay
+              </div>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Open your banking / payment app.</li>
+                <li>Scan the QR code shown on this page.</li>
+                <li>Send payment for {amountText}.</li>
+                <li>
+                  After payment, copy the{" "}
+                  <span className="font-semibold">transaction ID</span>.
+                </li>
+                <li>
+                  Go back to the{" "}
+                  <span className="font-semibold text-slate-100">
+                    Chrome extension floating panel
+                  </span>{" "}
+                  and paste the transaction ID there.
+                </li>
+              </ol>
+            </div>
+
+            <div className="text-[10px] text-slate-500">
+              Note: This page does not accept payments directly. It only shows
+              QR codes and instructions. All payment requests are submitted from
+              inside the extension.
+            </div>
+          </div>
+        </div>
+
+        {/* Small footer */}
+        <div className="border-t border-slate-800 pt-3 mt-2">
+          <p className="text-[10px] text-slate-500 leading-relaxed">
+            After you submit your transaction ID in the extension, your
+            subscription will be approved manually.
+            Once approved, the extension will unlock automatically on your
+            registered device. You do not need to keep this page open.
+          </p>
+        </div>
       </div>
     </div>
   );
