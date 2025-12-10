@@ -16,14 +16,88 @@ const ALLOWED_ORIGIN =
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST,OPTIONS"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization"
   );
+}
+
+// =============================
+// Device lock helper
+// =============================
+//
+// Rule:
+// - 1 active device per user_email.
+// - If same deviceId => update last_seen_at, allow.
+// - If different deviceId:
+//   * If previous lock older than 72 hours, auto-move to new device.
+//   * Otherwise: block with reason "device_locked" (admin reset karega).
+//
+async function enforceDeviceLock(email, deviceId) {
+  // 1) If this device is already active, just update last_seen_at
+  const same = await sql`
+    SELECT id
+    FROM device_locks
+    WHERE user_email = ${email}
+      AND device_id = ${deviceId}
+      AND is_active = true
+    LIMIT 1;
+  `;
+  if (same.length > 0) {
+    await sql`
+      UPDATE device_locks
+      SET last_seen_at = now()
+      WHERE id = ${same[0].id};
+    `;
+    return { ok: true, reason: "same_device" };
+  }
+
+  // 2) Try to auto-expire any active lock older than 72 hours
+  const released = await sql`
+    UPDATE device_locks
+    SET is_active = false
+    WHERE user_email = ${email}
+      AND is_active = true
+      AND created_at < (now() - interval '72 hours')
+    RETURNING id;
+  `;
+
+  if (released.length > 0) {
+    // We freed the old device, now lock this new one
+    const inserted = await sql`
+      INSERT INTO device_locks (user_email, device_id, is_active)
+      VALUES (${email}, ${deviceId}, true)
+      RETURNING id;
+    `;
+    return { ok: true, reason: "auto_switch", newLockId: inserted[0].id };
+  }
+
+  // 3) Do we still have some active lock (i.e. recent one)?
+  const active = await sql`
+    SELECT device_id, created_at
+    FROM device_locks
+    WHERE user_email = ${email}
+      AND is_active = true
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `;
+  if (active.length > 0) {
+    return {
+      ok: false,
+      reason: "device_locked",
+      activeDeviceId: active[0].device_id,
+      since: active[0].created_at,
+    };
+  }
+
+  // 4) No active lock at all → create a new one
+  const inserted = await sql`
+    INSERT INTO device_locks (user_email, device_id, is_active)
+    VALUES (${email}, ${deviceId}, true)
+    RETURNING id;
+  `;
+  return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
 }
 
 export default async function handler(req, res) {
@@ -54,14 +128,18 @@ export default async function handler(req, res) {
     }
 
     if (token !== EXTENSION_API_TOKEN) {
-      return res
-        .status(401)
-        .json({ ok: false, error: "Bad token" });
+      return res.status(401).json({ ok: false, error: "Bad token" });
     }
 
-    // Check login (Google via NextAuth)
-    const session = await getServerSession(req, res, authOptions);
+    if (!sql) {
+      return res.status(500).json({
+        ok: false,
+        error: "Database not configured",
+      });
+    }
 
+    // User must be logged in with Google (same as /api/extension/payment)
+    const session = await getServerSession(req, res, authOptions);
     if (!session || !session.user?.email) {
       return res.status(200).json({
         ok: false,
@@ -70,124 +148,96 @@ export default async function handler(req, res) {
     }
 
     const email = session.user.email;
-    const name = session.user.name || null;
 
-    // -------------------------------
-    // 1) Optional: look up user row
-    // -------------------------------
-    let userId = null;
-    if (sql) {
-      try {
-        const rowsUser = await sql`
-          SELECT id FROM users
-          WHERE email = ${email}
-          LIMIT 1
-        `;
-        if (rowsUser.length > 0) {
-          userId = rowsUser[0].id;
-        }
-      } catch (e) {
-        console.error("check.js users lookup error", e);
-      }
+    // =============================
+    // 1) Enforce device lock
+    // =============================
+    const lockResult = await enforceDeviceLock(email, deviceId);
+    if (!lockResult.ok) {
+      // Device mismatch and under 72 hours
+      return res.status(200).json({
+        ok: false,
+        reason: "device_locked",
+        message:
+          "Your license is locked to another device. Please request a device reset from admin.",
+        activeDeviceId: lockResult.activeDeviceId || null,
+        since: lockResult.since || null,
+      });
     }
 
-    // ---------------------------------------
-    // 2) Upsert into device_locks (device ID)
-    // ---------------------------------------
-    // device_locks schema expected:
-    // id uuid, user_id uuid, device_id text, last_updated timestamptz
-    let deviceLock = "none"; // none | ok | other_device
+    // =============================
+    // 2) Check subscription status
+    // =============================
+    //
+    // We read from extension_payments (latest row)
+    // and interpret:
+    // - status = 'pending'  -> pending
+    // - status = 'approved' & valid_until in future -> active
+    // - otherwise -> no_subscription
+    //
+    const rows = await sql`
+      SELECT status, valid_until, region
+      FROM extension_payments
+      WHERE user_email = ${email}
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
 
-    if (sql && userId) {
-      try {
-        const locks = await sql`
-          SELECT id, device_id
-          FROM device_locks
-          WHERE user_id = ${userId}
-          LIMIT 1
-        `;
-
-        if (locks.length === 0) {
-          // First time – lock this device
-          await sql`
-            INSERT INTO device_locks (user_id, device_id, last_updated)
-            VALUES (${userId}, ${deviceId}, now())
-          `;
-          deviceLock = "ok";
-        } else {
-          const lock = locks[0];
-          if (!lock.device_id || lock.device_id === deviceId) {
-            // Same device – refresh timestamp
-            await sql`
-              UPDATE device_locks
-              SET device_id = ${deviceId}, last_updated = now()
-              WHERE id = ${lock.id}
-            `;
-            deviceLock = "ok";
-          } else {
-            // Different PC – keep old lock
-            deviceLock = "other_device";
-          }
-        }
-      } catch (e) {
-        console.error("check.js device_locks error", e);
-      }
+    if (rows.length === 0) {
+      return res.status(200).json({
+        ok: true,
+        status: "no_subscription",
+        plan: null,
+        daysRemaining: null,
+        region: null,
+      });
     }
 
-    // ------------------------------------------------
-    // 3) Read subscription status from extension_payments
-    // ------------------------------------------------
-    let status = "no_subscription"; // no_subscription | pending | active | error
-    let region = "PK";
+    const row = rows[0];
+    const nowMs = Date.now();
     let daysRemaining = null;
-    const plan = "manual-qr";
+    let isActive = false;
 
-    if (sql) {
-      try {
-        // Use either device or email to find latest payment record
-        const rowsPay = await sql`
-          SELECT status, region, valid_until, created_at
-          FROM extension_payments
-          WHERE device_id = ${deviceId} OR user_email = ${email}
-          ORDER BY created_at DESC
-          LIMIT 1
-        `;
-
-        if (rowsPay.length > 0) {
-          const row = rowsPay[0];
-          region = row.region || region;
-
-          const now = new Date();
-          const validUntil = row.valid_until ? new Date(row.valid_until) : null;
-
-          if (row.status === "approved" && validUntil && validUntil > now) {
-            status = "active";
-            const diffMs = validUntil.getTime() - now.getTime();
-            daysRemaining = Math.max(
-              0,
-              Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-            );
-          } else if (row.status === "pending") {
-            status = "pending";
-          } else if (row.status === "rejected" || row.status === "expired") {
-            status = "no_subscription";
-          } else {
-            status = "no_subscription";
-          }
-        }
-      } catch (dbErr) {
-        console.error("check.js payments error", dbErr);
-        status = "error";
-      }
+    if (row.valid_until) {
+      const untilMs = Date.parse(row.valid_until);
+      const diffMs = untilMs - nowMs;
+      daysRemaining = Math.max(
+        0,
+        Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      );
+      isActive = diffMs > 0 && row.status === "approved";
+    } else {
+      // If no valid_until column set, treat approved as active (lifetime or manual)
+      isActive = row.status === "approved";
     }
 
+    if (!isActive) {
+      if (row.status === "pending") {
+        return res.status(200).json({
+          ok: true,
+          status: "pending",
+          plan: null,
+          daysRemaining,
+          region: row.region || null,
+        });
+      }
+
+      return res.status(200).json({
+        ok: true,
+        status: "no_subscription",
+        plan: null,
+        daysRemaining: null,
+        region: row.region || null,
+      });
+    }
+
+    // ACTIVE
     return res.status(200).json({
       ok: true,
-      status,
-      region,
-      plan,
+      status: "active",
+      plan: null,
       daysRemaining,
-      deviceLock, // for future use in admin/extension
+      region: row.region || null,
     });
   } catch (err) {
     console.error("check.js fatal error", err);
