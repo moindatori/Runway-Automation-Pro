@@ -28,14 +28,14 @@ function setCors(res) {
 // =============================
 //
 // Rule:
-// - 1 active device per user_email.
+// - 1 active device per email.
 // - If same deviceId => update last_seen_at, allow.
 // - If different deviceId:
 //   * If previous lock older than 72 hours, auto-move to new device.
 //   * Otherwise: block with reason "device_locked" (admin reset karega).
 //
-// If device_locks table missing or any DB error occurs -> we log it and
-// simply allow (so API 500 na de, bus lock feature off ho jaye).
+// Agar device_locks table ya columns ka structure mismatch ho →
+// error log hoga, aur hum "fail-open" karenge (user ko block nahi karenge).
 //
 async function enforceDeviceLock(email, deviceId) {
   if (!sql) {
@@ -47,7 +47,7 @@ async function enforceDeviceLock(email, deviceId) {
     const same = await sql`
       SELECT id
       FROM device_locks
-      WHERE user_email = ${email}
+      WHERE email = ${email}
         AND device_id = ${deviceId}
         AND is_active = true
       LIMIT 1;
@@ -65,7 +65,7 @@ async function enforceDeviceLock(email, deviceId) {
     const released = await sql`
       UPDATE device_locks
       SET is_active = false
-      WHERE user_email = ${email}
+      WHERE email = ${email}
         AND is_active = true
         AND created_at < (now() - interval '72 hours')
       RETURNING id;
@@ -74,7 +74,7 @@ async function enforceDeviceLock(email, deviceId) {
     if (released.length > 0) {
       // Freed old device → lock this one
       const inserted = await sql`
-        INSERT INTO device_locks (user_email, device_id, is_active)
+        INSERT INTO device_locks (email, device_id, is_active)
         VALUES (${email}, ${deviceId}, true)
         RETURNING id;
       `;
@@ -85,7 +85,7 @@ async function enforceDeviceLock(email, deviceId) {
     const active = await sql`
       SELECT device_id, created_at
       FROM device_locks
-      WHERE user_email = ${email}
+      WHERE email = ${email}
         AND is_active = true
       ORDER BY created_at DESC
       LIMIT 1;
@@ -101,14 +101,14 @@ async function enforceDeviceLock(email, deviceId) {
 
     // 4) No active lock at all → create a fresh one
     const inserted = await sql`
-      INSERT INTO device_locks (user_email, device_id, is_active)
+      INSERT INTO device_locks (email, device_id, is_active)
       VALUES (${email}, ${deviceId}, true)
       RETURNING id;
     `;
     return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
   } catch (e) {
-    console.error("enforceDeviceLock error (device_locks missing?)", e);
-    // Fail-open: do NOT block user if lock table missing or broken
+    console.error("enforceDeviceLock error (device_locks missing/schema mismatch?)", e);
+    // Fail-open: table/columns issue → do NOT block user
     return { ok: true, reason: "lock_disabled" };
   }
 }
