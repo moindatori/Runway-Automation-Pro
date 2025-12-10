@@ -16,14 +16,35 @@ const ALLOWED_ORIGIN =
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST,OPTIONS"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization"
   );
+}
+
+/**
+ * Ensure there is a row in extension_users for this email.
+ * Returns extension_users.id (uuid).
+ */
+async function ensureExtensionUser({ email, googleId, name, avatarUrl }) {
+  // Try to find existing user by email
+  const existing = await sql`
+    SELECT id FROM extension_users
+    WHERE email = ${email}
+    LIMIT 1;
+  `;
+  if (existing.length > 0) {
+    return existing[0].id;
+  }
+
+  // Create new user row
+  const inserted = await sql`
+    INSERT INTO extension_users (google_id, email, name, avatar_url)
+    VALUES (${googleId}, ${email}, ${name}, ${avatarUrl})
+    RETURNING id;
+  `;
+  return inserted[0].id;
 }
 
 export default async function handler(req, res) {
@@ -41,6 +62,7 @@ export default async function handler(req, res) {
   try {
     const { token, deviceId, region, txId } = req.body || {};
 
+    // Basic validation
     if (!token || !deviceId || !txId) {
       return res
         .status(400)
@@ -54,22 +76,8 @@ export default async function handler(req, res) {
     }
 
     if (token !== EXTENSION_API_TOKEN) {
-      return res
-        .status(401)
-        .json({ ok: false, error: "Bad token" });
+      return res.status(401).json({ ok: false, error: "Bad token" });
     }
-
-    // Check login
-    const session = await getServerSession(req, res, authOptions);
-    if (!session || !session.user?.email) {
-      return res.status(200).json({
-        ok: false,
-        reason: "not_logged_in",
-      });
-    }
-
-    const email = session.user.email;
-    const normalizedRegion = region === "INT" ? "INT" : "PK";
 
     if (!sql) {
       return res.status(500).json({
@@ -78,37 +86,49 @@ export default async function handler(req, res) {
       });
     }
 
-    // Optional: link to users table if it exists
-    let userId = null;
-    try {
-      const rowsUser = await sql`
-        SELECT id FROM users
-        WHERE email = ${email}
-        LIMIT 1
-      `;
-      if (rowsUser.length > 0) {
-        userId = rowsUser[0].id;
-      }
-    } catch (e) {
-      console.error("payment.js users lookup error", e);
+    // Check login (must match the Google account in the extension)
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || !session.user?.email) {
+      // Same pattern as /api/extension/check – 200 + reason
+      return res.status(200).json({
+        ok: false,
+        reason: "not_logged_in",
+      });
     }
 
-    // Store payment request in extension_payments
+    const email = session.user.email;
+    const name = session.user.name || null;
+    const avatarUrl = session.user.image || null;
+    const googleId =
+      session.user.googleId ||
+      session.user.sub ||
+      session.user.id ||
+      null;
+
+    const normalizedRegion = region === "INT" ? "INT" : "PK";
+
+    // Ensure extension_users row exists and get its id
+    const userId = await ensureExtensionUser({
+      email,
+      googleId,
+      name,
+      avatarUrl,
+    });
+
+    // Store payment request in payment_requests (NOT extension_payments)
     // Schema example:
     // id uuid DEFAULT gen_random_uuid(),
-    // user_id uuid NULL,
+    // user_id uuid NOT NULL REFERENCES extension_users(id) ON DELETE CASCADE,
     // device_id text NOT NULL,
-    // user_email text NOT NULL,
     // region text NOT NULL,
     // tx_id text NOT NULL,
     // status text NOT NULL DEFAULT 'pending',
-    // valid_until timestamptz NULL,
     // created_at timestamptz DEFAULT now()
     await sql`
-      INSERT INTO extension_payments
-        (user_id, device_id, user_email, region, tx_id, status)
+      INSERT INTO payment_requests
+        (user_id, device_id, region, tx_id, status)
       VALUES
-        (${userId}, ${deviceId}, ${email}, ${normalizedRegion}, ${txId}, 'pending')
+        (${userId}, ${deviceId}, ${normalizedRegion}, ${txId}, 'pending');
     `;
 
     return res.status(200).json({
