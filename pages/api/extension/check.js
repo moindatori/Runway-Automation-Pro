@@ -24,23 +24,45 @@ function setCors(res) {
 }
 
 /**
- * Device lock using device_locks table keyed by user_id (NOT user_email).
+ * DEVICE LOCK RULES
+ * -----------------
+ * - We work in terms of user_id (from users table) + device_id.
+ * - At most ONE active device per user (device_locks.is_active = true).
+ * - If same device_id → just update last_updated and allow.
+ * - If different device_id:
+ *    * If active lock older than 72 hours → auto-release old lock and create new one.
+ *    * Otherwise → block with reason "device_locked".
  *
- * Rules:
- *  - 1 active device per user_id.
- *  - If same deviceId -> update last_seen_at/last_updated, allow.
- *  - If different deviceId:
- *      * If old lock older than 72h → move lock to new device.
- *      * Otherwise → block with reason "device_locked".
+ * SCHEMA ASSUMED:
+ *   device_locks(
+ *     id serial,
+ *     user_id uuid/int,
+ *     device_id text,
+ *     is_active boolean default true,
+ *     created_at timestamp default now(),
+ *     last_updated timestamp default now()
+ *   )
  */
-async function enforceDeviceLock(userId, deviceId) {
+async function enforceDeviceLock(email, deviceId) {
   if (!sql) {
-    // If DB not configured, don't block the user
     return { ok: true, reason: "no_db" };
   }
 
   try {
-    // 1) If this device is already active, just update last_seen_at / last_updated
+    // 0) Map email -> user_id
+    const userRows = await sql`
+      SELECT id
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1;
+    `;
+    if (userRows.length === 0) {
+      // If we don't have a user row yet, don't block; let NextAuth create it later.
+      return { ok: true, reason: "no_user_row" };
+    }
+    const userId = userRows[0].id;
+
+    // 1) Same device already active?
     const same = await sql`
       SELECT id
       FROM device_locks
@@ -49,39 +71,36 @@ async function enforceDeviceLock(userId, deviceId) {
         AND is_active = true
       LIMIT 1;
     `;
-
     if (same.length > 0) {
-      const lockId = same[0].id;
       await sql`
         UPDATE device_locks
-        SET last_seen_at = NOW(),
-            last_updated = NOW()
-        WHERE id = ${lockId};
+        SET last_updated = now()
+        WHERE id = ${same[0].id};
       `;
       return { ok: true, reason: "same_device" };
     }
 
-    // 2) Auto-expire old active locks older than 72 hours (per user)
+    // 2) Auto-expire old locks (>72 hours) for this user
     const released = await sql`
       UPDATE device_locks
       SET is_active = false
       WHERE user_id = ${userId}
         AND is_active = true
-        AND created_at < (NOW() - INTERVAL '72 hours')
+        AND created_at < (now() - interval '72 hours')
       RETURNING id;
     `;
 
     if (released.length > 0) {
-      // We freed an old device; now lock this new one
+      // Freed old device → lock this new one
       const inserted = await sql`
-        INSERT INTO device_locks (user_id, device_id, is_active, last_seen_at, last_updated)
-        VALUES (${userId}, ${deviceId}, true, NOW(), NOW())
+        INSERT INTO device_locks (user_id, device_id, is_active, last_updated)
+        VALUES (${userId}, ${deviceId}, true, now())
         RETURNING id;
       `;
       return { ok: true, reason: "auto_switch", newLockId: inserted[0].id };
     }
 
-    // 3) Is there still some recent active lock for this user on another device?
+    // 3) Still have some active lock (recent) on another device
     const active = await sql`
       SELECT device_id, created_at
       FROM device_locks
@@ -90,7 +109,6 @@ async function enforceDeviceLock(userId, deviceId) {
       ORDER BY created_at DESC
       LIMIT 1;
     `;
-
     if (active.length > 0) {
       return {
         ok: false,
@@ -100,17 +118,16 @@ async function enforceDeviceLock(userId, deviceId) {
       };
     }
 
-    // 4) No active lock at all → create a new lock for this device
+    // 4) No active lock at all → create a fresh one
     const inserted = await sql`
-      INSERT INTO device_locks (user_id, device_id, is_active, last_seen_at, last_updated)
-      VALUES (${userId}, ${deviceId}, true, NOW(), NOW())
+      INSERT INTO device_locks (user_id, device_id, is_active, last_updated)
+      VALUES (${userId}, ${deviceId}, true, now())
       RETURNING id;
     `;
     return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
   } catch (e) {
-    console.error("enforceDeviceLock error", e);
-    // If something goes wrong, better to NOT block everyone.
-    // If you want it even stricter, you can change this to ok: false.
+    console.error("enforceDeviceLock error (device_locks missing/mismatch?)", e);
+    // Fail-open: do NOT block user if lock table missing or wrong shape
     return { ok: true, reason: "lock_disabled" };
   }
 }
@@ -164,29 +181,10 @@ export default async function handler(req, res) {
 
     const email = session.user.email;
 
-    // Resolve user_id from users table (create row if missing)
-    let userId;
-    const userRows = await sql`
-      SELECT id
-      FROM users
-      WHERE email = ${email}
-      LIMIT 1;
-    `;
-    if (userRows.length > 0) {
-      userId = userRows[0].id;
-    } else {
-      const insertUser = await sql`
-        INSERT INTO users (email, name)
-        VALUES (${email}, ${email})
-        RETURNING id;
-      `;
-      userId = insertUser[0].id;
-    }
-
     // =============================
     // 1) Enforce device lock
     // =============================
-    const lockResult = await enforceDeviceLock(userId, deviceId);
+    const lockResult = await enforceDeviceLock(email, deviceId);
     if (!lockResult.ok) {
       // Device mismatch and under 72 hours
       return res.status(200).json({
@@ -200,11 +198,8 @@ export default async function handler(req, res) {
     }
 
     // =============================
-    // 2) Check subscription status
+    // 2) Check subscription status from extension_payments
     // =============================
-    //
-    // We read from extension_payments (latest row) for this email.
-    //
     let rows = [];
     try {
       rows = await sql`
@@ -246,7 +241,7 @@ export default async function handler(req, res) {
       );
       isActive = diffMs > 0 && row.status === "approved";
     } else {
-      // If no valid_until set, treat approved as active (lifetime/manual)
+      // If no valid_until column set, treat approved as active (lifetime or manual)
       isActive = row.status === "approved";
     }
 

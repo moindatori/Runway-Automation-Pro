@@ -90,17 +90,9 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 background: active
-                  ? "linear-gradient(135deg,#9d4edd,#ff007f)"
+                  ? "linear-gradient(90deg,#7c3aed,#4f46e5)"
                   : "transparent",
-                color: active ? "#f9fafb" : "#d1d5db",
-                boxShadow: active
-                  ? "0 8px 20px rgba(148,27,128,0.55)"
-                  : "none",
-                border: active
-                  ? "1px solid rgba(236,72,153,0.8)"
-                  : "transparent",
-                transition:
-                  "background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s"
+                color: active ? "#f9fafb" : "#d1d5db"
               }}
             >
               {item.label}
@@ -175,7 +167,9 @@ function StatCard({ title, value, helper, icon }) {
       <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>
         {value}
       </div>
-      {helper && <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>}
+      {helper && (
+        <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>
+      )}
     </div>
   );
 }
@@ -185,7 +179,8 @@ function FilterTabs({ current, setCurrent }) {
     { id: "all", label: "All" },
     { id: "pending", label: "Pending" },
     { id: "approved", label: "Approved" },
-    { id: "rejected", label: "Rejected" }
+    { id: "rejected", label: "Rejected" },
+    { id: "cancelled", label: "Cancelled" }
   ];
 
   return (
@@ -212,12 +207,7 @@ function FilterTabs({ current, setCurrent }) {
               cursor: "pointer",
               background: active ? "#ffffff" : "transparent",
               color: active ? "#111827" : "#6b7280",
-              fontWeight: active ? 600 : 500,
-              boxShadow: active
-                ? "0 6px 16px rgba(148,27,128,0.25)"
-                : "none",
-              transition:
-                "background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s"
+              fontWeight: active ? 600 : 500
             }}
           >
             {t.label}
@@ -248,8 +238,7 @@ export default function AdminPage({
 
   async function handlePaymentAction(id, action) {
     let label = "";
-    if (action === "approve_30")
-      label = "approve this extension payment for 30 days?";
+    if (action === "approve_30") label = "approve this extension payment for 30 days?";
     if (action === "reject") label = "reject this payment?";
     if (action === "cancel") label = "cancel this approved license now?";
 
@@ -315,26 +304,9 @@ export default function AdminPage({
     setGeneratedToken(token);
   }
 
-  const primaryButtonStyle = {
-    borderRadius: 999,
-    border: "1px solid rgba(236,72,153,0.8)",
-    padding: "6px 14px",
-    background: "linear-gradient(135deg,#9d4edd,#ff007f)",
-    color: "#fdf2ff",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 600,
-    boxShadow: "0 10px 25px rgba(148,27,128,0.55)",
-    transition: "transform 0.15s, box-shadow 0.15s, filter 0.15s"
-  };
-
   return (
     <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#0b1120"
-      }}
+      style={{ display: "flex", minHeight: "100vh", background: "#f3f4f6" }}
     >
       <Sidebar
         activeTab={activeTab}
@@ -342,7 +314,7 @@ export default function AdminPage({
         sessionEmail={sessionEmail}
       />
 
-      <main style={{ flex: 1, padding: "22px 28px", background: "#f3f4f6" }}>
+      <main style={{ flex: 1, padding: "22px 28px" }}>
         {activeTab === "dashboard" && (
           <>
             <header style={{ marginBottom: 20 }}>
@@ -362,7 +334,7 @@ export default function AdminPage({
                   marginTop: 4
                 }}
               >
-                Monitor your platform performance, active users, and revenue.
+                Monitor your extension users, active licenses, and revenue.
               </p>
             </header>
 
@@ -377,25 +349,25 @@ export default function AdminPage({
               <StatCard
                 title="Total Users"
                 value={stats.totalUsers}
-                helper="Registered users on the platform"
+                helper="Registered emails in users table"
                 icon="👥"
               />
               <StatCard
                 title="Users with Subscription"
                 value={stats.usersWithSub}
-                helper="Users having at least one active plan"
+                helper="Emails with an approved, active extension license"
                 icon="⭐"
               />
               <StatCard
                 title="Earnings (PKR)"
                 value={stats.totalPkr}
-                helper="Revenue from PKR plans"
+                helper="All-time approved PKR extension revenue"
                 icon="₨"
               />
               <StatCard
                 title="Earnings (USD)"
                 value={stats.totalUsd}
-                helper="Revenue from USD plans"
+                helper="All-time approved USD extension revenue"
                 icon="$"
               />
             </section>
@@ -428,7 +400,7 @@ export default function AdminPage({
                 <p style={{ fontSize: 13, color: "#6b7280" }}>
                   Latest user registrations and subscription changes will
                   appear here in future iterations. For now, you already see
-                  high-level stats above.
+                  live extension stats above.
                 </p>
               </div>
 
@@ -504,8 +476,8 @@ export default function AdminPage({
                   marginTop: 4
                 }}
               >
-                View registered users, their devices and subscription status.
-                Use admin actions to reset device or manage subscription.
+                View registered users, their devices and extension subscription
+                status. Use admin actions to reset device or manage license.
               </p>
             </header>
 
@@ -623,10 +595,13 @@ export default function AdminPage({
                   ) : (
                     users.map((u) => {
                       const statusTone =
-                        u.sub_status === "active"
+                        u.sub_status === "approved"
                           ? "green"
-                          : u.sub_status
+                          : u.sub_status === "pending"
                           ? "orange"
+                          : u.sub_status === "cancelled" ||
+                            u.sub_status === "rejected"
+                          ? "red"
                           : "gray";
 
                       const deviceShort =
@@ -634,16 +609,16 @@ export default function AdminPage({
                           ? `${u.device_id.slice(0, 16)}…`
                           : u.device_id || "-";
 
-                      const hasActive = u.sub_status === "active";
+                      const hasActive =
+                        u.sub_status === "approved" &&
+                        (u.daysRemaining == null || u.daysRemaining > 0);
 
                       const actionBtnBase = {
                         borderRadius: 999,
                         padding: "5px 10px",
                         fontSize: 11,
                         cursor: "pointer",
-                        border: "none",
-                        transition:
-                          "transform 0.15s, box-shadow 0.15s, filter 0.15s"
+                        border: "none"
                       };
 
                       return (
@@ -671,7 +646,7 @@ export default function AdminPage({
                                   color: "#9ca3af"
                                 }}
                               >
-                                No plan
+                                No extension plan
                               </span>
                             )}
                           </td>
@@ -849,10 +824,7 @@ export default function AdminPage({
                     padding: "7px 14px",
                     background: "#ffffff",
                     fontSize: 12,
-                    cursor: "pointer",
-                    boxShadow: "0 6px 16px rgba(15,23,42,0.08)",
-                    transition:
-                      "transform 0.15s, box-shadow 0.15s, filter 0.15s"
+                    cursor: "pointer"
                   }}
                 >
                   Refresh
@@ -890,7 +862,7 @@ export default function AdminPage({
                       : p.status === "rejected"
                       ? "red"
                       : p.status === "cancelled"
-                      ? "orange"
+                      ? "red"
                       : "orange";
 
                   const planLabel =
@@ -915,7 +887,7 @@ export default function AdminPage({
                   } else if (p.status === "rejected") {
                     statusHelper = "Rejected";
                   } else if (p.status === "cancelled") {
-                    statusHelper = "Cancelled";
+                    statusHelper = "Cancelled / expired";
                   }
 
                   return (
@@ -1034,7 +1006,17 @@ export default function AdminPage({
                               onClick={() =>
                                 handlePaymentAction(p.id, "approve_30")
                               }
-                              style={primaryButtonStyle}
+                              style={{
+                                borderRadius: 999,
+                                border: "none",
+                                padding: "6px 14px",
+                                background:
+                                  "linear-gradient(90deg,#22c55e,#4ade80)",
+                                color: "#022c22",
+                                cursor: "pointer",
+                                fontSize: 12,
+                                fontWeight: 600
+                              }}
                             >
                               Approve 30d
                             </button>
@@ -1050,11 +1032,7 @@ export default function AdminPage({
                                 color: "#b91c1c",
                                 cursor: "pointer",
                                 fontSize: 12,
-                                fontWeight: 500,
-                                boxShadow:
-                                  "0 8px 18px rgba(248,113,113,0.15)",
-                                transition:
-                                  "transform 0.15s, box-shadow 0.15s, filter 0.15s"
+                                fontWeight: 500
                               }}
                             >
                               Reject
@@ -1069,18 +1047,14 @@ export default function AdminPage({
                             }
                             style={{
                               borderRadius: 999,
-                              border: "1px solid #fed7aa",
+                              border: "1px solid #fecaca",
                               padding: "6px 14px",
                               background: "#fff7ed",
                               color: "#b45309",
                               cursor: "pointer",
                               fontSize: 12,
                               fontWeight: 500,
-                              marginTop: 4,
-                              boxShadow:
-                                "0 8px 18px rgba(251,146,60,0.25)",
-                              transition:
-                                "transform 0.15s, box-shadow 0.15s, filter 0.15s"
+                              marginTop: 4
                             }}
                           >
                             Cancel license
@@ -1219,9 +1193,16 @@ export default function AdminPage({
                   type="button"
                   onClick={generateNewToken}
                   style={{
-                    ...primaryButtonStyle,
-                    padding: "7px 18px",
-                    marginTop: 4
+                    borderRadius: 999,
+                    border: "1px solid #e5e7eb",
+                    padding: "7px 14px",
+                    background:
+                      "linear-gradient(90deg,#6366f1,#8b5cf6)",
+                    color: "#f9fafb",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    boxShadow: "0 10px 25px rgba(79,70,229,0.25)"
                   }}
                 >
                   Generate new random token
@@ -1280,17 +1261,34 @@ export async function getServerSideProps(context) {
   }
 
   try {
-    // Stats from subscriptions (includes extension subs we insert on approve_30)
+    // ============================
+    // 1) Stats from extension_payments
+    // ============================
     const statsRows = await sql`
       SELECT
         (SELECT COUNT(*) FROM users) AS total_users,
-        (SELECT COUNT(DISTINCT user_id)
-         FROM subscriptions
-         WHERE status = 'active' AND end_date > NOW()) AS users_with_sub,
-        COALESCE(SUM(CASE WHEN currency = 'PKR' THEN amount_numeric ELSE 0 END),0) AS total_pkr,
-        COALESCE(SUM(CASE WHEN currency = 'USD' THEN amount_numeric ELSE 0 END),0) AS total_usd
-      FROM subscriptions
-      LIMIT 1
+        (
+          SELECT COUNT(DISTINCT user_email)
+          FROM extension_payments
+          WHERE status = 'approved'
+            AND (valid_until IS NULL OR valid_until > NOW())
+        ) AS users_with_sub,
+        (
+          SELECT COALESCE(SUM(
+            CASE
+              WHEN region = 'INT' THEN 0
+              ELSE 1000
+            END
+          ), 0)
+          FROM extension_payments
+          WHERE status = 'approved'
+        ) AS total_pkr,
+        (
+          SELECT COALESCE(COUNT(*) * 10, 0)
+          FROM extension_payments
+          WHERE status = 'approved'
+            AND region = 'INT'
+        ) AS total_usd
     `;
     const row = statsRows[0] || {
       total_users: 0,
@@ -1299,17 +1297,27 @@ export async function getServerSideProps(context) {
       total_usd: 0
     };
 
-    // Users + latest subscription + latest device lock
+    // ============================
+    // 2) Users + latest extension payment + latest device lock
+    // ============================
     const usersRows = await sql`
-      WITH latest_sub AS (
-        SELECT DISTINCT ON (user_id)
-          id, user_id, plan_code, status, end_date
-        FROM subscriptions
-        ORDER BY user_id, end_date DESC
+      WITH latest_ext AS (
+        SELECT DISTINCT ON (user_email)
+          id,
+          user_email,
+          region,
+          status,
+          valid_until,
+          created_at
+        FROM extension_payments
+        ORDER BY user_email, created_at DESC
       ),
       latest_lock AS (
         SELECT DISTINCT ON (user_id)
-          id, user_id, device_id, last_updated
+          id,
+          user_id,
+          device_id,
+          last_updated
         FROM device_locks
         ORDER BY user_id, last_updated DESC
       )
@@ -1318,13 +1326,13 @@ export async function getServerSideProps(context) {
         u.email,
         u.name,
         u.created_at,
-        ls.plan_code,
-        ls.status AS sub_status,
-        ls.end_date,
+        le.region,
+        le.status AS ext_status,
+        le.valid_until,
         dl.device_id,
         dl.last_updated
       FROM users u
-      LEFT JOIN latest_sub ls ON ls.user_id = u.id
+      LEFT JOIN latest_ext le ON le.user_email = u.email
       LEFT JOIN latest_lock dl ON dl.user_id = u.id
       ORDER BY u.created_at DESC
     `;
@@ -1333,8 +1341,14 @@ export async function getServerSideProps(context) {
 
     const users = usersRows.map((u) => {
       let daysRemaining = null;
-      if (u.sub_status === "active" && u.end_date) {
-        const end = new Date(u.end_date);
+      let plan_code = null;
+
+      if (u.region) {
+        plan_code = u.region === "INT" ? "EXT_INT" : "EXT_PK";
+      }
+
+      if (u.ext_status === "approved" && u.valid_until) {
+        const end = new Date(u.valid_until);
         const diffMs = end.getTime() - now.getTime();
         if (diffMs > 0) {
           daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
@@ -1342,21 +1356,24 @@ export async function getServerSideProps(context) {
           daysRemaining = 0;
         }
       }
+
       return {
         id: u.id,
         email: u.email,
         name: u.name,
         created_at: u.created_at,
-        plan_code: u.plan_code,
-        sub_status: u.sub_status,
-        end_date: u.end_date,
+        plan_code,
+        sub_status: u.ext_status,
+        end_date: u.valid_until,
         device_id: u.device_id,
         last_updated: u.last_updated,
         daysRemaining
       };
     });
 
-    // Extension payments list
+    // ============================
+    // 3) Extension payments list
+    // ============================
     let paymentsRows = [];
     try {
       paymentsRows = await sql`
