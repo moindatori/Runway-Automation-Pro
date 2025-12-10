@@ -62,8 +62,12 @@ async function ensureUser(email, name) {
  */
 async function enforceDeviceLock(userId, deviceId) {
   if (!sql || !userId || !deviceId) {
-    // If DB or ids are missing, do not block – fail-open
-    return { ok: true, reason: "no_db_or_ids" };
+    // If DB or ids are missing, we treat as lock error (fail-closed)
+    return {
+      ok: false,
+      reason: "device_locked",
+      message: "License data missing (user or device)."
+    };
   }
 
   try {
@@ -85,7 +89,7 @@ async function enforceDeviceLock(userId, deviceId) {
       };
     }
 
-    // 1) Same device + same user already active → just update last_seen_at
+    // 1) Same device + same user already active → just update last_updated
     const same = await sql`
       SELECT id
       FROM device_locks
@@ -150,8 +154,13 @@ async function enforceDeviceLock(userId, deviceId) {
     return { ok: true, reason: "new_lock", newLockId: inserted[0].id };
   } catch (e) {
     console.error("enforceDeviceLock error (device_locks issue?)", e);
-    // Fail-open: if lock table is missing/broken, do NOT block usage
-    return { ok: true, reason: "lock_disabled" };
+    // STRICT: if lock table is broken, block usage
+    return {
+      ok: false,
+      reason: "device_locked",
+      message:
+        "License table error. Please contact admin to fix device locks."
+    };
   }
 }
 
