@@ -1,124 +1,256 @@
 // pages/index.js
 
+import React from "react";
+import Head from "next/head";
 import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "./api/auth/[...nextauth]";
 
-export async function getServerSideProps(context) {
-  const session = await getServerSession(context.req, context.res, authOptions);
-
-  let safeSession = null;
-  if (session?.user) {
-    safeSession = {
-      user: {
-        name: session.user.name || null,
-        email: session.user.email || null,
-      },
-    };
-  }
-
-  return {
-    props: {
-      session: safeSession,
-    },
+export default function HomePage() {
+  const pageStyle = {
+    minHeight: "100vh",
+    margin: 0,
+    padding: "40px 16px",
+    background:
+      "radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%), #020617",
+    color: "#e5e7eb",
+    fontFamily:
+      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   };
-}
 
-export default function Home({ session }) {
-  const isLoggedIn = !!session;
+  const wrapperStyle = {
+    maxWidth: "780px",
+    margin: "0 auto",
+  };
+
+  const headerStyle = {
+    marginBottom: "24px",
+  };
+
+  const tagStyle = {
+    fontSize: "11px",
+    letterSpacing: "0.25em",
+    textTransform: "uppercase",
+    color: "#64748b",
+    marginBottom: "6px",
+  };
+
+  const titleStyle = {
+    fontSize: "28px",
+    fontWeight: 700,
+    margin: 0,
+    color: "#e5e7eb",
+  };
+
+  const subtitleStyle = {
+    marginTop: "6px",
+    fontSize: "13px",
+    color: "#9ca3af",
+  };
+
+  const cardStyle = {
+    borderRadius: "24px",
+    border: "1px solid rgba(148,163,184,0.6)",
+    background: "rgba(15,23,42,0.98)",
+    boxShadow: "0 26px 80px rgba(15,23,42,0.95)",
+    padding: "24px 22px",
+  };
+
+  const sectionTitleStyle = {
+    fontSize: "14px",
+    fontWeight: 600,
+    marginBottom: "6px",
+    color: "#e5e7eb",
+  };
+
+  const textStyle = {
+    fontSize: "12px",
+    lineHeight: 1.6,
+    color: "#9ca3af",
+  };
+
+  const columnsStyle = {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "16px",
+    marginTop: "18px",
+  };
+
+  const columnStyle = {
+    flex: "1 1 260px",
+    borderRadius: "18px",
+    border: "1px solid rgba(51,65,85,0.9)",
+    background:
+      "radial-gradient(circle at top left, rgba(129,140,248,0.08), transparent 55%), rgba(15,23,42,0.98)",
+    padding: "14px 16px",
+    fontSize: "12px",
+  };
+
+  const badgeStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    borderRadius: "999px",
+    border: "1px solid rgba(148,163,184,0.65)",
+    padding: "4px 10px",
+    fontSize: "11px",
+    color: "#cbd5f5",
+    background: "#020617",
+    marginTop: "10px",
+  };
+
+  const linkButtonStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "18px",
+    borderRadius: "999px",
+    border: "0",
+    padding: "9px 18px",
+    fontSize: "12px",
+    fontWeight: 600,
+    cursor: "pointer",
+    background: "linear-gradient(135deg,#6366f1,#ec4899)",
+    color: "#ffffff",
+    boxShadow: "0 14px 40px rgba(99,102,241,0.55)",
+    textDecoration: "none",
+  };
+
+  const footnoteStyle = {
+    marginTop: "16px",
+    fontSize: "10px",
+    color: "#6b7280",
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/80 px-6 py-7 shadow-[0_25px_80px_rgba(15,23,42,0.9)]">
-        {/* Logo / Title */}
-        <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-            Runway Prompt Studio
-          </p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight">
-            Chrome extension access portal
-          </h1>
-        </div>
+    <>
+      <Head>
+        <title>Runway Prompt Studio – Backend</title>
+      </Head>
 
-        {/* Info text */}
-        <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-          This website is used only for{" "}
-          <span className="font-medium text-slate-200">
-            Google login, subscription and payment verification
-          </span>{" "}
-          for the Runway Prompt Studio Chrome extension.
-          All tools and automation run inside the extension on{" "}
-          <span className="font-mono">app.runwayml.com</span>.
-        </p>
-
-        {/* Session state */}
-        {isLoggedIn ? (
-          <div className="mb-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 px-4 py-3 text-xs flex justify-between items-start gap-3">
-            <div>
-              <p className="text-emerald-300 font-medium mb-1">
-                You are signed in
-              </p>
-              <p className="text-slate-300">
-                {session.user?.name && (
-                  <span className="font-semibold">{session.user.name}</span>
-                )}
-                {session.user?.email && (
-                  <span className="text-slate-400">
-                    {" "}
-                    ({session.user.email})
-                  </span>
-                )}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-400">
-                To use the automation, open{" "}
-                <span className="font-mono">app.runwayml.com</span>,
-                then open the Chrome extension panel.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-5 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs">
-            <p className="text-slate-200 font-medium mb-1">
-              Not signed in yet
+      <div style={pageStyle}>
+        <div style={wrapperStyle}>
+          {/* Header */}
+          <header style={headerStyle}>
+            <div style={tagStyle}>Runway Prompt Studio</div>
+            <h1 style={titleStyle}>Backend & account portal</h1>
+            <p style={subtitleStyle}>
+              This site is used only for{" "}
+              <span style={{ color: "#e5e7eb", fontWeight: 500 }}>
+                Chrome extension subscriptions and manual payment review
+              </span>
+              . It is not needed for normal RunwayML usage.
             </p>
-            <p className="text-slate-400">
-              Please sign in with your Google account to link your subscription
-              with the extension.
-            </p>
-          </div>
-        )}
+          </header>
 
-        {/* Main actions */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-2">
-          {!isLoggedIn && (
-            <a
-              href="/api/auth/signin"
-              className="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-medium
-                         bg-slate-100 text-slate-900 hover:bg-white transition border border-slate-200"
+          {/* Main card */}
+          <main style={cardStyle}>
+            <div style={sectionTitleStyle}>How this backend is used</div>
+            <p style={textStyle}>
+              If you installed the <strong>Runway Prompt Studio</strong> Chrome
+              extension, you only need this backend for:
+            </p>
+            <ul
+              style={{
+                marginTop: "6px",
+                paddingLeft: "18px",
+                fontSize: "12px",
+                color: "#9ca3af",
+                lineHeight: 1.6,
+              }}
             >
-              Continue with Google
-            </a>
-          )}
+              <li>logging in once with Google (same account as the extension)</li>
+              <li>viewing QR codes and payment instructions</li>
+              <li>
+                admins reviewing transactions, managing subscriptions, and
+                credits
+              </li>
+            </ul>
 
-          <Link
-            href="/user/payments"
-            className="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-medium
-                       border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
-          >
-            Open payment page
-          </Link>
-        </div>
+            <div style={columnsStyle}>
+              {/* Column 1: Extension users */}
+              <section style={columnStyle}>
+                <div style={{ ...sectionTitleStyle, marginBottom: "4px" }}>
+                  For Chrome extension users
+                </div>
+                <p style={textStyle}>
+                  You do not manage anything manually on this page. Simply:
+                </p>
+                <ol
+                  style={{
+                    marginTop: "6px",
+                    paddingLeft: "18px",
+                    fontSize: "12px",
+                    color: "#9ca3af",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <li>
+                    Login with Google when the extension or this site asks you.
+                  </li>
+                  <li>
+                    Scan the QR code and send payment from your bank / wallet.
+                  </li>
+                  <li>
+                    Paste the transaction ID{" "}
+                    <strong>inside the extension floating panel</strong> on{" "}
+                    <span style={{ fontFamily: "monospace" }}>
+                      app.runwayml.com
+                    </span>
+                    .
+                  </li>
+                </ol>
 
-        {/* Small footer note */}
-        <div className="mt-5 border-t border-slate-800 pt-3">
-          <p className="text-[10px] text-slate-500 leading-relaxed">
-            If you already submitted a transaction ID inside the extension,
-            your subscription will be approved manually.
-            Once approved, the extension will unlock automatically on your
-            registered device.
-          </p>
+                <Link href="/user/payments" style={linkButtonStyle}>
+                  Open subscription payment instructions
+                </Link>
+              </section>
+
+              {/* Column 2: Admins */}
+              <section style={columnStyle}>
+                <div style={{ ...sectionTitleStyle, marginBottom: "4px" }}>
+                  For admins & staff
+                </div>
+                <p style={textStyle}>
+                  Admin tools (user list, payments, subscription control,
+                  device reset, API tokens) are available on a{" "}
+                  <strong>separate admin panel</strong>.
+                </p>
+                <p style={{ ...textStyle, marginTop: "8px" }}>
+                  Use your private admin URL:
+                  <br />
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      color: "#e5e7eb",
+                      fontSize: "11px",
+                    }}
+                  >
+                    https://runway-automation-pro.vercel.app/admin
+                  </span>
+                </p>
+
+                <div style={badgeStyle}>
+                  <span
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "999px",
+                      backgroundColor: "#22c55e",
+                    }}
+                  />{" "}
+                  Access restricted to authorized accounts
+                </div>
+              </section>
+            </div>
+
+            <p style={footnoteStyle}>
+              Note: This backend is independent from RunwayML itself. It only
+              controls access to the{" "}
+              <strong>Runway Prompt Studio Chrome extension</strong> and its
+              automation features.
+            </p>
+          </main>
         </div>
       </div>
-    </div>
+    </>
   );
 }
