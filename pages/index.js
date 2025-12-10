@@ -7,130 +7,117 @@ import { authOptions } from "./api/auth/[...nextauth]";
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
 
-  // Admin emails .env me rakho, jaise:
-  // ADMIN_EMAILS="youradmin@gmail.com,anotheradmin@gmail.com"
-  const rawAdmins = process.env.ADMIN_EMAILS || "";
-  const adminEmails = rawAdmins
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-
-  const isAdmin =
-    !!session?.user?.email && adminEmails.includes(session.user.email);
-
-  // Session ko serializable bana dete hain (sirf basic fields)
-  const safeSession = session
-    ? {
-        user: {
-          name: session.user?.name || null,
-          email: session.user?.email || null,
-        },
-      }
-    : null;
+  let safeSession = null;
+  if (session?.user) {
+    safeSession = {
+      user: {
+        name: session.user.name || null,
+        email: session.user.email || null,
+      },
+    };
+  }
 
   return {
     props: {
       session: safeSession,
-      isAdmin,
     },
   };
 }
 
-export default function Home({ session, isAdmin }) {
-  const loggedIn = !!session;
+export default function Home({ session }) {
+  const isLoggedIn = !!session;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-xl bg-slate-900/70 border border-slate-700/70 rounded-2xl shadow-2xl p-8 backdrop-blur">
-        {/* Branding / Title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900/80 px-6 py-7 shadow-[0_25px_80px_rgba(15,23,42,0.9)]">
+        {/* Logo / Title */}
+        <div className="mb-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
             Runway Prompt Studio
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Secure access for the Chrome extension. Sign in with Google and then
-            use the extension directly on RunwayML.
           </p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight">
+            Chrome extension access portal
+          </h1>
         </div>
 
-        {/* If NOT logged in: show simple login card */}
-        {!loggedIn && (
-          <div className="space-y-5">
-            <p className="text-sm text-slate-300">
-              Please sign in with your Google account to link your subscription
-              and device with the Runway automation extension.
-            </p>
+        {/* Info text */}
+        <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+          This website is used only for{" "}
+          <span className="font-medium text-slate-200">
+            Google login, subscription and payment verification
+          </span>{" "}
+          for the Runway Prompt Studio Chrome extension.
+          All tools and automation run inside the extension on{" "}
+          <span className="font-mono">app.runwayml.com</span>.
+        </p>
 
-            <a
-              href="/api/auth/signin"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 bg-white text-slate-900 text-sm font-medium shadow hover:bg-slate-100 transition"
-            >
-              <span>Continue with Google</span>
-            </a>
-
-            <div className="text-xs text-slate-500 border-t border-slate-800 pt-4">
-              <p>
-                After sign in, open the Chrome extension on{" "}
-                <span className="font-mono text-slate-300">
-                  app.runwayml.com
-                </span>{" "}
-                and use the floating panel to manage your subscription.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* If logged in: simple welcome + instructions */}
-        {loggedIn && (
-          <div className="space-y-5">
-            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3">
-              <p className="text-sm font-medium text-emerald-300">
+        {/* Session state */}
+        {isLoggedIn ? (
+          <div className="mb-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 px-4 py-3 text-xs flex justify-between items-start gap-3">
+            <div>
+              <p className="text-emerald-300 font-medium mb-1">
                 You are signed in
               </p>
-              <p className="text-xs text-emerald-100 mt-1">
-                {session.user?.name
-                  ? `${session.user.name} (${session.user.email})`
-                  : session.user?.email}
+              <p className="text-slate-300">
+                {session.user?.name && (
+                  <span className="font-semibold">{session.user.name}</span>
+                )}
+                {session.user?.email && (
+                  <span className="text-slate-400">
+                    {" "}
+                    ({session.user.email})
+                  </span>
+                )}
               </p>
-            </div>
-
-            <div className="space-y-2 text-sm text-slate-300">
-              <p>
-                Your account is now connected. You can close this page and use
-                the Chrome extension directly on RunwayML.
-              </p>
-              <ul className="list-disc list-inside text-slate-400 text-xs space-y-1">
-                <li>Open RunwayML: app.runwayml.com</li>
-                <li>Click the floating icon of Runway Prompt Studio</li>
-                <li>
-                  The extension will check your subscription and show payment or
-                  automation options inside the panel
-                </li>
-              </ul>
-            </div>
-
-            {isAdmin && (
-              <div className="mt-4 border-t border-slate-800 pt-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">
-                  Admin tools
-                </p>
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center justify-center rounded-full px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-100"
-                >
-                  Open admin dashboard
-                </Link>
-              </div>
-            )}
-
-            <div className="text-[11px] text-slate-500 border-t border-slate-800 pt-3">
-              <p>
-                For support or subscription issues, contact the developer of
-                Runway Prompt Studio.
+              <p className="mt-1 text-[11px] text-slate-400">
+                To use the automation, open{" "}
+                <span className="font-mono">app.runwayml.com</span>,
+                then open the Chrome extension panel.
               </p>
             </div>
           </div>
+        ) : (
+          <div className="mb-5 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs">
+            <p className="text-slate-200 font-medium mb-1">
+              Not signed in yet
+            </p>
+            <p className="text-slate-400">
+              Please sign in with your Google account to link your subscription
+              with the extension.
+            </p>
+          </div>
         )}
+
+        {/* Main actions */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-2">
+          {!isLoggedIn && (
+            <a
+              href="/api/auth/signin"
+              className="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-medium
+                         bg-slate-100 text-slate-900 hover:bg-white transition border border-slate-200"
+            >
+              Continue with Google
+            </a>
+          )}
+
+          <Link
+            href="/user/payments"
+            className="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-medium
+                       border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
+          >
+            Open payment page
+          </Link>
+        </div>
+
+        {/* Small footer note */}
+        <div className="mt-5 border-t border-slate-800 pt-3">
+          <p className="text-[10px] text-slate-500 leading-relaxed">
+            If you already submitted a transaction ID inside the extension,
+            your subscription will be approved manually.
+            Once approved, the extension will unlock automatically on your
+            registered device.
+          </p>
+        </div>
       </div>
     </div>
   );
