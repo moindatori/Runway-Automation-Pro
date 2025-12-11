@@ -1,4 +1,3 @@
-// pages/about.jsx
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -7,123 +6,168 @@ export default function AboutPage() {
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#050816",
-      backgroundImage:
-        "radial-gradient(circle at 0% 0%, rgba(244,63,94,0.22), transparent 55%)," +
-        "radial-gradient(circle at 100% 0%, rgba(56,189,248,0.18), transparent 55%)," +
-        "radial-gradient(circle at 50% 100%, rgba(168,85,247,0.22), transparent 60%)",
-      color: "#e5e7eb",
+      background: "#0f0c29",
       fontFamily:
-        "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      position: "relative",
+      overflow: "hidden",
       display: "flex",
-      alignItems: "center",
       justifyContent: "center",
-      padding: "60px 20px",
+      padding: "80px 20px",
+      color: "#e5e7eb",
     },
-    card: {
-      width: "100%",
-      maxWidth: 900,
-      borderRadius: 32,
-      border: "1px solid rgba(148,163,184,0.45)",
+    blob1: {
+      position: "absolute",
+      top: "-15%",
+      left: "-10%",
+      width: "60vw",
+      height: "60vw",
       background:
-        "linear-gradient(145deg, rgba(15,23,42,0.96), rgba(15,23,42,0.9))",
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob2: {
+      position: "absolute",
+      bottom: "-10%",
+      right: "-10%",
+      width: "50vw",
+      height: "50vw",
+      background:
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob3: {
+      position: "absolute",
+      top: "40%",
+      left: "30%",
+      width: "40vw",
+      height: "40vw",
+      background:
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(90px)",
+      opacity: 0.4,
+      zIndex: 0,
+    },
+    container: {
+      width: "100%",
+      maxWidth: "900px",
+      position: "relative",
+      zIndex: 10,
+    },
+    shell: {
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.14)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.32)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.32)",
+      background: "rgba(15, 23, 42, 0.96)",
       boxShadow:
-        "0 32px 120px rgba(15,23,42,0.95), 0 0 0 1px rgba(15,23,42,0.8)",
-      padding: "30px 26px 26px",
+        "0 25px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(15,23,42,0.85)",
+      padding: "26px 26px 24px",
       position: "relative",
       overflow: "hidden",
     },
-    glow: {
+    shellInnerGlow: {
       position: "absolute",
-      inset: "-40%",
+      inset: "-35%",
       background:
-        "radial-gradient(circle at 10% 0%, rgba(236,72,153,0.12), transparent 60%)," +
-        "radial-gradient(circle at 90% 0%, rgba(59,130,246,0.1), transparent 60%)," +
-        "radial-gradient(circle at 50% 100%, rgba(45,212,191,0.12), transparent 60%)",
+        "radial-gradient(circle at 0 0, rgba(255,15,123,0.18), transparent 60%)," +
+        "radial-gradient(circle at 100% 0, rgba(59,130,246,0.18), transparent 60%)," +
+        "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.18), transparent 65%)",
+      opacity: 0.9,
       pointerEvents: "none",
     },
-    inner: { position: "relative", zIndex: 1 },
+    shellContent: {
+      position: "relative",
+      zIndex: 1,
+      display: "flex",
+      flexDirection: "column",
+      gap: 20,
+    },
+    header: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: 16,
+      flexWrap: "wrap",
+    },
     tag: {
       fontSize: 11,
-      letterSpacing: "0.25em",
+      letterSpacing: "0.2em",
       textTransform: "uppercase",
       color: "#9ca3af",
-      marginBottom: 6,
     },
-    h1: {
+    title: {
+      margin: "4px 0 4px",
       fontSize: 26,
       fontWeight: 800,
-      margin: 0,
-      color: "#e5e7eb",
+      letterSpacing: "-0.02em",
+      color: "#f9fafb",
     },
     subtitle: {
-      marginTop: 6,
       fontSize: 13,
-      color: "#9ca3af",
+      color: "rgba(226,232,240,0.8)",
       maxWidth: 520,
+    },
+    main: {
+      display: "grid",
+      gridTemplateColumns: "minmax(0, 1.5fr) minmax(0, 1.1fr)",
+      gap: 20,
+    },
+    column: {
+      borderRadius: 22,
+      padding: "18px 18px 16px",
+      border: "1px solid rgba(148,163,184,0.45)",
+      background:
+        "radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 55%), rgba(15,23,42,0.96)",
+      boxShadow: "0 22px 60px rgba(15,23,42,0.9)",
+      fontSize: 12,
+    },
+    columnAlt: {
+      borderRadius: 22,
+      padding: "18px 18px 16px",
+      border: "1px solid rgba(148,163,184,0.45)",
+      background:
+        "radial-gradient(circle at 100% 0, rgba(236,72,153,0.32), transparent 55%), rgba(15,23,42,0.96)",
+      boxShadow: "0 22px 60px rgba(15,23,42,0.9)",
+      fontSize: 12,
     },
     sectionTitle: {
       fontSize: 14,
       fontWeight: 600,
-      marginTop: 18,
       marginBottom: 6,
       color: "#e5e7eb",
     },
-    text: {
+    body: {
       fontSize: 12,
       lineHeight: 1.7,
-      color: "#cbd5f5",
-      maxWidth: 760,
+      color: "rgba(226,232,240,0.85)",
     },
     list: {
-      paddingLeft: 18,
       marginTop: 6,
+      paddingLeft: 18,
       fontSize: 12,
       lineHeight: 1.7,
       color: "#9ca3af",
     },
-    navRow: {
+    chipsRow: {
       display: "flex",
       flexWrap: "wrap",
-      gap: 10,
-      marginTop: 18,
-    },
-    primaryBtn: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 999,
-      border: "0",
-      padding: "9px 18px",
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: "pointer",
-      background:
-        "linear-gradient(135deg, #ec4899 0%, #6366f1 50%, #22c55e 100%)",
-      color: "#ffffff",
-      boxShadow: "0 18px 55px rgba(59,130,246,0.75)",
-      textDecoration: "none",
       gap: 8,
+      marginTop: 10,
+      fontSize: 11,
     },
-    secondaryBtn: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
+    chip: {
+      padding: "4px 10px",
       borderRadius: 999,
       border: "1px solid rgba(148,163,184,0.5)",
-      padding: "7px 14px",
-      fontSize: 11,
-      fontWeight: 500,
-      cursor: "pointer",
       background:
-        "radial-gradient(circle at 0 0, rgba(148,163,184,0.16), transparent 60%)",
+        "radial-gradient(circle at 0 0, rgba(148,163,184,0.22), transparent 60%)",
       color: "#e5e7eb",
       textDecoration: "none",
-    },
-    footnote: {
-      marginTop: 16,
-      fontSize: 10,
-      color: "#9ca3af",
     },
   };
 
@@ -132,69 +176,95 @@ export default function AboutPage() {
       <Head>
         <title>About – Runway Prompt Studio</title>
       </Head>
+
       <div style={s.page}>
-        <div style={s.card}>
-          <div style={s.glow} />
-          <div style={s.inner}>
-            <div style={s.tag}>About</div>
-            <h1 style={s.h1}>What is Runway Prompt Studio?</h1>
-            <p style={s.subtitle}>
-              A Chrome extension + backend that automates prompt workflows for
-              RunwayML Gen-4 image-to-video projects.
-            </p>
+        <div style={s.blob1} />
+        <div style={s.blob2} />
+        <div style={s.blob3} />
 
-            <h2 style={s.sectionTitle}>Independent automation layer</h2>
-            <p style={s.text}>
-              Runway Prompt Studio is an independent tool that helps you manage
-              prompts, motion templates and bulk automation for{" "}
-              <code>app.runwayml.com</code>. It does not replace RunwayML – it
-              simply automates actions inside your own account, using your
-              existing Runway subscription and credits.
-            </p>
+        <div style={s.container}>
+          <div style={s.shell}>
+            <div style={s.shellInnerGlow} />
+            <div style={s.shellContent}>
+              <header style={s.header}>
+                <div>
+                  <div style={s.tag}>Runway Prompt Studio</div>
+                  <h1 style={s.title}>About this project</h1>
+                  <p style={s.subtitle}>
+                    A Chrome extension and backend that automate prompt
+                    workflows for RunwayML&apos;s Gen-4 tools, with device-locked
+                    licensing and QR-based subscriptions.
+                  </p>
+                </div>
+              </header>
 
-            <h2 style={s.sectionTitle}>Not affiliated with RunwayML</h2>
-            <p style={s.text}>
-              This project is{" "}
-              <strong>not endorsed by, affiliated with, or sponsored by</strong>{" "}
-              Runway, RunwayML, or any of their partners. All trademarks and
-              product names are the property of their respective owners. You
-              remain responsible for complying with RunwayML&apos;s own Terms of
-              Service while using this extension.
-            </p>
+              <main style={s.main}>
+                <section style={s.column}>
+                  <div style={s.sectionTitle}>What it does</div>
+                  <p style={s.body}>
+                    Runway Prompt Studio is built to speed up everyday work
+                    inside <code style={{ fontSize: 11 }}>app.runwayml.com</code>
+                    . It focuses on:
+                  </p>
+                  <ul style={s.list}>
+                    <li>floating UI panels and automation helpers</li>
+                    <li>bulk prompt generation and CSV-driven flows</li>
+                    <li>image-to-video prompt presets and fine-tuned motion</li>
+                    <li>simple QR payments and manual license control</li>
+                  </ul>
+                  <p style={{ ...s.body, marginTop: 8 }}>
+                    The backend you are viewing stores only what is required to
+                    link your browser device, your Google account and your
+                    payment reference.
+                  </p>
+                </section>
 
-            <h2 style={s.sectionTitle}>What the backend does</h2>
-            <ul style={s.list}>
-              <li>Links your Chrome extension to a Google account.</li>
-              <li>Stores a device-locked license for your automation plan.</li>
-              <li>Receives QR payments and lets admins approve or reject them.</li>
-              <li>Prevents sharing one license across many devices.</li>
-            </ul>
+                <aside style={s.columnAlt}>
+                  <div style={s.sectionTitle}>Independent tool</div>
+                  <p style={s.body}>
+                    Runway Prompt Studio is an independent project. It is{" "}
+                    <strong>not</strong> affiliated with, endorsed by, or
+                    sponsored by Runway / RunwayML. All trademarks are the
+                    property of their respective owners.
+                  </p>
 
-            <h2 style={s.sectionTitle}>Support & contact</h2>
-            <p style={s.text}>
-              For support, billing questions, or device reset requests, contact
-              the project owner using the email shown inside the Chrome
-              extension or payment instructions screen. Include your{" "}
-              <strong>transaction ID</strong> and <strong>device ID</strong> so
-              your request can be processed faster.
-            </p>
+                  <p style={{ ...s.body, marginTop: 10 }}>
+                    You remain responsible for how you use RunwayML. Always
+                    follow RunwayML&apos;s own{" "}
+                    <a
+                      href="https://runwayml.com/terms"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: "#93c5fd", textDecoration: "underline" }}
+                    >
+                      Terms
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="https://runwayml.com/privacy"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: "#93c5fd", textDecoration: "underline" }}
+                    >
+                      Privacy Policy
+                    </a>
+                    .
+                  </p>
 
-            <div style={s.navRow}>
-              <Link href="/user/payments" style={s.primaryBtn}>
-                Go to payment / subscription page
-              </Link>
-              <Link href="/" style={s.secondaryBtn}>
-                Back to main portal
-              </Link>
-              <Link href="/legal/privacy" style={s.secondaryBtn}>
-                Privacy &amp; terms
-              </Link>
+                  <div style={s.chipsRow}>
+                    <Link href="/legal/privacy" style={s.chip}>
+                      Privacy Policy
+                    </Link>
+                    <Link href="/legal/terms" style={s.chip}>
+                      Terms of Service
+                    </Link>
+                    <Link href="/user/payments" style={s.chip}>
+                      Open payment page
+                    </Link>
+                  </div>
+                </aside>
+              </main>
             </div>
-
-            <p style={s.footnote}>
-              This page is informational and does not override the legal
-              language in the official Terms of Service and Privacy Policy.
-            </p>
           </div>
         </div>
       </div>

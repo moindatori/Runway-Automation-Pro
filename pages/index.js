@@ -1,92 +1,32 @@
-import React, { useState, useEffect } from "react";
+// pages/index.js
+import React from "react";
 import Head from "next/head";
 import Link from "next/link";
 
-// --- Icons (Clean & Sharp) ---
-const Icons = {
-  Check: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-  ),
-  Shield: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-    </svg>
-  ),
-  Zap: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-    </svg>
-  ),
-  Info: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-    </svg>
-  ),
-  Users: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-      <circle cx="9" cy="7" r="4"></circle>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-    </svg>
-  ),
-  ArrowRight: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  ),
-  External: () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-      <polyline points="15 3 21 3 21 9"></polyline>
-      <line x1="10" y1="14" x2="21" y2="3"></line>
-    </svg>
-  )
-};
-
 export default function HomePage() {
-  // For responsive grid without breaking SSR
-  const [isNarrow, setIsNarrow] = useState(false);
-
-  // Responsive: detect width on client only
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleResize = () => {
-      setIsNarrow(window.innerWidth < 850);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // ----------------------------------------------------------------
-  // VIBRANT GLASS STYLES
-  // ----------------------------------------------------------------
+  // Reuse the same look & feel as the payment page
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#0f0c29",
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      background: "#0f0c29", // same as payment page
+      fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       position: "relative",
-      overflowX: "hidden",
+      overflow: "hidden",
       display: "flex",
       justifyContent: "center",
       padding: "80px 20px",
+      color: "#e5e7eb",
     },
 
-    // Background blobs
+    // Background blobs (same palette as payment page)
     blob1: {
       position: "absolute",
       top: "-15%",
       left: "-10%",
       width: "60vw",
       height: "60vw",
-      background: "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
+      background:
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -97,7 +37,8 @@ export default function HomePage() {
       right: "-10%",
       width: "50vw",
       height: "50vw",
-      background: "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
+      background:
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -108,7 +49,8 @@ export default function HomePage() {
       left: "30%",
       width: "40vw",
       height: "40vw",
-      background: "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
+      background:
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(90px)",
       opacity: 0.4,
       zIndex: 0,
@@ -116,294 +58,363 @@ export default function HomePage() {
 
     container: {
       width: "100%",
-      maxWidth: "1100px",
+      maxWidth: "1000px",
       position: "relative",
       zIndex: 10,
+    },
+
+    // Main glass card (full page style)
+    shell: {
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.14)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.32)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.32)",
+      background: "rgba(15, 23, 42, 0.96)",
+      boxShadow:
+        "0 25px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(15,23,42,0.85)",
+      padding: "26px 26px 24px",
+      position: "relative",
+      overflow: "hidden",
+    },
+    shellInnerGlow: {
+      position: "absolute",
+      inset: "-35%",
+      background:
+        "radial-gradient(circle at 0 0, rgba(255,15,123,0.18), transparent 60%)," +
+        "radial-gradient(circle at 100% 0, rgba(59,130,246,0.18), transparent 60%)," +
+        "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.18), transparent 65%)",
+      opacity: 0.9,
+      pointerEvents: "none",
+    },
+    shellContent: {
+      position: "relative",
+      zIndex: 1,
       display: "flex",
       flexDirection: "column",
-      gap: "30px",
+      gap: 22,
     },
 
     // Header
-    header: {
-      textAlign: "center",
-      marginBottom: "20px",
+    headerRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 16,
+      flexWrap: "wrap",
     },
-    headerTag: {
-      fontSize: "12px",
-      letterSpacing: "0.25em",
+    leftTitleBlock: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4,
+    },
+    tag: {
+      fontSize: 11,
+      letterSpacing: "0.2em",
       textTransform: "uppercase",
-      color: "rgba(255,255,255,0.6)",
-      marginBottom: "12px",
-      fontWeight: 600,
+      color: "#9ca3af",
     },
-    h1: {
-      fontSize: "48px",
-      fontWeight: "800",
-      letterSpacing: "-1.5px",
-      color: "#fff",
-      margin: "0 0 16px 0",
-      textShadow: "0 4px 20px rgba(0,0,0,0.3)",
-      lineHeight: 1.1,
+    title: {
+      margin: 0,
+      fontSize: 26,
+      fontWeight: 800,
+      letterSpacing: "-0.02em",
+      color: "#f9fafb",
     },
     subtitle: {
-      fontSize: "18px",
-      color: "rgba(255,255,255,0.7)",
-      fontWeight: "400",
-      maxWidth: "600px",
-      margin: "0 auto",
-      lineHeight: 1.6,
-    },
-    highlight: {
-      color: "#fff",
-      fontWeight: 600,
-      position: "relative",
-      display: "inline-block",
+      fontSize: 13,
+      color: "rgba(226,232,240,0.78)",
+      maxWidth: 520,
     },
 
-    // Grid
-    grid: {
-      display: isNarrow ? "flex" : "grid",
-      flexDirection: isNarrow ? "column" : undefined,
-      gridTemplateColumns: isNarrow ? undefined : "repeat(12, 1fr)",
-      gap: "24px",
-    },
-
-    // Glass card
-    glassPanel: {
-      background: "rgba(255, 255, 255, 0.03)",
-      backdropFilter: "blur(40px)",
-      WebkitBackdropFilter: "blur(40px)",
-      borderRadius: "30px",
-      border: "1px solid rgba(255, 255, 255, 0.15)",
-      borderTop: "1px solid rgba(255, 255, 255, 0.3)",
-      borderLeft: "1px solid rgba(255, 255, 255, 0.3)",
-      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-      padding: "40px",
-      color: "#fff",
-      overflow: "hidden",
-      position: "relative",
-      display: "flex",
-      flexDirection: "column",
-    },
-
-    leftCol: {
-      gridColumn: isNarrow ? undefined : "span 7",
-    },
-    rightCol: {
-      gridColumn: isNarrow ? undefined : "span 5",
-      display: "flex",
-      flexDirection: "column",
-      gap: "24px",
-    },
-
-    sectionTitle: {
-      fontSize: "20px",
-      fontWeight: "700",
-      marginBottom: "16px",
-      display: "flex",
-      alignItems: "center",
-      gap: "10px",
-      textShadow: "0 2px 4px rgba(0,0,0,0.2)",
-    },
-    text: {
-      fontSize: "15px",
-      lineHeight: "1.7",
-      color: "rgba(255,255,255,0.7)",
-      marginBottom: "20px",
-    },
-
-    // Lists
-    stepList: { listStyle: "none", padding: 0, margin: "0 0 30px 0" },
-    stepItem: {
-      display: "flex",
-      gap: "15px",
-      marginBottom: "16px",
-      alignItems: "flex-start",
-    },
-    stepIcon: {
-      background: "rgba(255,255,255,0.1)",
-      width: "24px",
-      height: "24px",
-      borderRadius: "50%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      flexShrink: 0,
-      marginTop: "2px",
-    },
-
-    // Buttons
-    btnRow: {
+    // Top-right nav buttons (Login / Admin optional)
+    topNav: {
       display: "flex",
       flexWrap: "wrap",
-      gap: "16px",
-      marginTop: "auto",
+      gap: 10,
     },
+    ghostBtn: {
+      borderRadius: 999,
+      border: "1px solid rgba(148,163,184,0.45)",
+      padding: "6px 12px",
+      fontSize: 11,
+      fontWeight: 500,
+      background:
+        "radial-gradient(circle at 0 0, rgba(148,163,184,0.15), transparent 60%)",
+      color: "#e5e7eb",
+      cursor: "pointer",
+      textDecoration: "none",
+    },
+
+    // Main layout
+    mainGrid: {
+      display: "grid",
+      gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1.1fr)",
+      gap: 22,
+      marginTop: 4,
+    },
+    mainGridNarrow: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 18,
+      marginTop: 4,
+    },
+
+    // Left column
+    leftPanel: {
+      borderRadius: 22,
+      padding: "20px 18px 18px",
+      border: "1px solid rgba(148,163,184,0.45)",
+      background:
+        "radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 55%), rgba(15,23,42,0.96)",
+      boxShadow: "0 22px 60px rgba(15,23,42,0.9)",
+      fontSize: 12,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: 600,
+      marginBottom: 6,
+      color: "#e5e7eb",
+    },
+    bodyText: {
+      fontSize: 12,
+      lineHeight: 1.65,
+      color: "rgba(226,232,240,0.8)",
+      maxWidth: 540,
+    },
+    bulletList: {
+      marginTop: 8,
+      paddingLeft: 18,
+      fontSize: 12,
+      lineHeight: 1.7,
+      color: "#9ca3af",
+    },
+
     primaryBtn: {
-      flex: 1,
-      minWidth: "200px",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "16px 24px",
-      borderRadius: "16px",
+      marginTop: 16,
+      padding: "11px 22px",
+      borderRadius: 999,
       border: "none",
-      background: "linear-gradient(135deg, #ff0f7b 0%, #f89b29 100%)",
-      color: "#fff",
-      fontSize: "15px",
-      fontWeight: "700",
+      fontSize: 13,
+      fontWeight: 700,
       cursor: "pointer",
-      boxShadow: "0 10px 40px -10px rgba(255, 15, 123, 0.5)",
       textDecoration: "none",
-      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-      gap: "8px",
+      background:
+        "linear-gradient(135deg, #ff0f7b 0%, #6366f1 50%, #22c55e 100%)",
+      color: "#ffffff",
+      boxShadow: "0 20px 50px rgba(59,130,246,0.78)",
+      gap: 8,
     },
     secondaryBtn: {
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "16px 24px",
-      borderRadius: "16px",
-      border: "1px solid rgba(255,255,255,0.2)",
-      background: "rgba(255,255,255,0.05)",
-      color: "#fff",
-      fontSize: "14px",
-      fontWeight: "600",
+      padding: "8px 16px",
+      borderRadius: 999,
+      border: "1px solid rgba(148,163,184,0.5)",
+      fontSize: 11,
+      fontWeight: 500,
       cursor: "pointer",
       textDecoration: "none",
-      transition: "background 0.2s ease",
+      color: "#e5e7eb",
+      background:
+        "radial-gradient(circle at 0 0, rgba(148,163,184,0.2), transparent 60%)",
+      marginLeft: 10,
     },
-
-    // Footer Links
-    tinyLinkRow: {
+    smallLinksRow: {
       display: "flex",
       flexWrap: "wrap",
-      gap: "16px",
-      marginTop: "30px",
-      paddingTop: "20px",
-      borderTop: "1px solid rgba(255,255,255,0.1)",
+      gap: 10,
+      marginTop: 10,
+      fontSize: 11,
     },
-    tinyLink: {
-      fontSize: "12px",
-      color: "rgba(255,255,255,0.4)",
+    tinyLinkChip: {
+      padding: "6px 12px",
+      borderRadius: 999,
+      border: "1px solid rgba(148,163,184,0.4)",
       textDecoration: "none",
-      transition: "color 0.2s",
+      color: "#cbd5f5",
+      background:
+        "radial-gradient(circle at 0 0, rgba(30,64,175,0.22), transparent 60%)",
+    },
+    footnote: {
+      marginTop: 14,
+      fontSize: 11,
+      color: "#9ca3af",
     },
 
-    // Status pill
-    statusPill: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      padding: "6px 14px",
-      borderRadius: "100px",
-      fontSize: "12px",
-      fontWeight: "600",
-      background: "rgba(34, 197, 94, 0.15)",
-      border: "1px solid rgba(34, 197, 94, 0.3)",
-      color: "#86efac",
-      backdropFilter: "blur(10px)",
-      margin: "0 auto",
-      marginBottom: "20px",
+    // Right column cards
+    rightCol: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 14,
+    },
+    infoCard: {
+      borderRadius: 20,
+      padding: "16px 16px 14px",
+      border: "1px solid rgba(148,163,184,0.45)",
+      background:
+        "radial-gradient(circle at 100% 0, rgba(129,140,248,0.3), transparent 55%), rgba(15,23,42,0.96)",
+      fontSize: 12,
+      boxShadow: "0 18px 50px rgba(15,23,42,0.95)",
+    },
+    infoTitle: {
+      fontSize: 13,
+      fontWeight: 600,
+      marginBottom: 4,
+      color: "#e5e7eb",
+    },
+    infoText: {
+      fontSize: 12,
+      lineHeight: 1.65,
+      color: "rgba(226,232,240,0.85)",
+    },
+    pillRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 10,
+      fontSize: 11,
+    },
+    pill: {
+      padding: "4px 10px",
+      borderRadius: 999,
+      border: "1px solid rgba(45,212,191,0.6)",
+      background:
+        "radial-gradient(circle at 0 0, rgba(45,212,191,0.2), transparent 60%)",
+      color: "#bbf7d0",
+      fontWeight: 500,
     },
   };
+
+  // Very small layout switch (pure clientless – based on CSS grid fallback)
+  const isNarrow =
+    typeof window !== "undefined" ? window.innerWidth < 900 : false;
+  const mainLayout = isNarrow ? s.mainGridNarrow : s.mainGrid;
 
   return (
     <>
       <Head>
-        <title>Runway Prompt Studio – Backend</title>
+        <title>Runway Prompt Studio – Extension Portal</title>
       </Head>
 
       <div style={s.page}>
-        {/* Background Blobs */}
         <div style={s.blob1} />
         <div style={s.blob2} />
         <div style={s.blob3} />
 
         <div style={s.container}>
-          {/* Header */}
-          <header style={s.header}>
-            <div style={s.headerTag}>Runway Prompt Studio</div>
-            <div style={s.statusPill}>
-              <Icons.Check /> Signed in with Google
-            </div>
-            
-            <h1 style={s.h1}>Chrome Extension Portal</h1>
-            <p style={s.subtitle}>
-              Link your device and manage your{" "}
-              <span style={s.highlight}>automation license</span> from here.
-            </p>
-          </header>
-
-          <div style={s.grid}>
-            {/* Left Column: Main Info & Actions */}
-            <div style={{ ...s.glassPanel, ...s.leftCol }}>
-              <div style={s.sectionTitle}>
-                <Icons.Zap /> How this backend is used
-              </div>
-              
-              <p style={s.text}>
-                If you installed the <strong>Runway Prompt Studio</strong> Chrome extension,
-                this site is your control center. You don't need to stay here; just use it for:
-              </p>
-
-              <ul style={s.stepList}>
-                <li style={s.stepItem}>
-                  <div style={s.stepIcon}><Icons.Check /></div>
-                  <div style={{...s.text, marginBottom: 0}}>Signing in securely with your Google account</div>
-                </li>
-                <li style={s.stepItem}>
-                  <div style={s.stepIcon}><Icons.Check /></div>
-                  <div style={{...s.text, marginBottom: 0}}>Viewing QR codes and payment instructions</div>
-                </li>
-                <li style={s.stepItem}>
-                  <div style={s.stepIcon}><Icons.Check /></div>
-                  <div style={{...s.text, marginBottom: 0}}>Linking your device and reviewing subscription status</div>
-                </li>
-              </ul>
-
-              <div style={s.btnRow}>
-                <Link href="/user/payments" style={s.primaryBtn}>
-                  Open Payment / Subscription Page <Icons.ArrowRight />
-                </Link>
-
-                <Link href="/about" style={s.secondaryBtn}>
-                  About Project
-                </Link>
-              </div>
-
-              <div style={s.tinyLinkRow}>
-                <Link href="/legal/privacy" style={s.tinyLink}>
-                  Privacy Policy
-                </Link>
-                <Link href="/legal/terms" style={s.tinyLink}>
-                  Terms &amp; License
-                </Link>
-                <span style={s.tinyLink}>
-                  Independent from RunwayML.
-                </span>
-              </div>
-            </div>
-
-            {/* Right Column: Side Info Cards */}
-            <div style={s.rightCol}>
-              
-              {/* Card 1: Users */}
-              <div style={s.glassPanel}>
-                <div style={s.sectionTitle}>
-                  <Icons.Users /> For extension users
+          <div style={s.shell}>
+            <div style={s.shellInnerGlow} />
+            <div style={s.shellContent}>
+              {/* Header row */}
+              <div style={s.headerRow}>
+                <div style={s.leftTitleBlock}>
+                  <span style={s.tag}>Runway Prompt Studio</span>
+                  <h1 style={s.title}>Chrome extension account portal</h1>
+                  <p style={s.subtitle}>
+                    This website connects your Chrome extension to a Google
+                    account, manages your device-locked license, and lets you
+                    handle payments for the automation plan.
+                  </p>
                 </div>
-                <div style={{...s.text, fontSize: '14px', marginBottom: 0}}>
-                  1. Log in with the same Google account you use inside <code>app.runwayml.com</code>.
-                  <br /><br />
-                  2. Complete a QR payment once.
-                  <br /><br />
-                  3. Enter the transaction ID inside the <strong>floating panel</strong> on Runway.
+
+                <div style={s.topNav}>
+                  <Link href="/api/auth/signin" style={s.ghostBtn}>
+                    Sign in with Google
+                  </Link>
+                  <Link href="/user/payments" style={s.ghostBtn}>
+                    Open payment page
+                  </Link>
                 </div>
               </div>
 
+              {/* Main content layout – same glass style as payment page */}
+              <div style={mainLayout}>
+                {/* LEFT */}
+                <section style={s.leftPanel}>
+                  <div style={s.sectionTitle}>How to use this portal</div>
+                  <p style={s.bodyText}>
+                    If you already installed the{" "}
+                    <strong>Runway Prompt Studio</strong> Chrome extension,
+                    follow these steps to unlock automation:
+                  </p>
+                  <ul style={s.bulletList}>
+                    <li>Sign in here using the same Google account.</li>
+                    <li>Go to the payment page and complete a QR payment.</li>
+                    <li>
+                      Copy the transaction / reference ID from your banking app.
+                    </li>
+                    <li>
+                      Paste that ID inside the extension&apos;s payment screen
+                      on{" "}
+                      <code style={{ fontSize: 11 }}>app.runwayml.com</code>.
+                    </li>
+                  </ul>
+
+                  <div>
+                    <Link href="/user/payments" style={s.primaryBtn}>
+                      Go to payment &amp; subscription
+                      <span style={{ fontSize: 16 }}>↗</span>
+                    </Link>
+                    <Link href="/about" style={s.secondaryBtn}>
+                      Learn more about this project
+                    </Link>
+                  </div>
+
+                  <div style={s.smallLinksRow}>
+                    <Link href="/legal/privacy" style={s.tinyLinkChip}>
+                      Privacy Policy
+                    </Link>
+                    <Link href="/legal/terms" style={s.tinyLinkChip}>
+                      Terms of Service
+                    </Link>
+                  </div>
+
+                  <p style={s.footnote}>
+                    This portal only controls access to the{" "}
+                    <strong>Runway Prompt Studio Chrome extension</strong>. You
+                    still use your own RunwayML account and credits for
+                    rendering.
+                  </p>
+                </section>
+
+                {/* RIGHT */}
+                <aside style={s.rightCol}>
+                  <div style={s.infoCard}>
+                    <div style={s.infoTitle}>What this backend stores</div>
+                    <p style={s.infoText}>
+                      Only minimal data is kept: your Google email, a generated{" "}
+                      device ID, QR transaction IDs, and license status
+                      (pending, active, expired). No Runway projects or media
+                      files are stored here.
+                    </p>
+                    <div style={s.pillRow}>
+                      <div style={s.pill}>Device-locked license</div>
+                      <div style={s.pill}>Manual approval</div>
+                      <div style={s.pill}>One account = one device</div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      ...s.infoCard,
+                      background:
+                        "radial-gradient(circle at 100% 0, rgba(236,72,153,0.35), transparent 55%), rgba(15,23,42,0.96)",
+                    }}
+                  >
+                    <div style={s.infoTitle}>Independent from RunwayML</div>
+                    <p style={s.infoText}>
+                      Runway Prompt Studio is an independent automation tool.
+                      It is not affiliated with, endorsed by, or sponsored by
+                      Runway / RunwayML. Use it only with your own account and
+                      always follow RunwayML&apos;s own terms.
+                    </p>
+                  </div>
+                </aside>
+              </div>
             </div>
           </div>
         </div>

@@ -1,107 +1,144 @@
-// pages/legal/privacy.jsx
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPage() {
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#050816",
-      backgroundImage:
-        "radial-gradient(circle at 0% 0%, rgba(244,63,94,0.22), transparent 55%)," +
-        "radial-gradient(circle at 100% 0%, rgba(56,189,248,0.18), transparent 55%)," +
-        "radial-gradient(circle at 50% 100%, rgba(168,85,247,0.22), transparent 60%)",
-      color: "#e5e7eb",
+      background: "#0f0c29",
       fontFamily:
-        "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      position: "relative",
+      overflow: "hidden",
       display: "flex",
-      alignItems: "center",
       justifyContent: "center",
-      padding: "60px 20px",
+      padding: "80px 20px",
+      color: "#e5e7eb",
     },
-    card: {
-      width: "100%",
-      maxWidth: 980,
-      borderRadius: 32,
-      border: "1px solid rgba(148,163,184,0.45)",
+    blob1: {
+      position: "absolute",
+      top: "-15%",
+      left: "-10%",
+      width: "60vw",
+      height: "60vw",
       background:
-        "linear-gradient(145deg, rgba(15,23,42,0.97), rgba(15,23,42,0.92))",
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob2: {
+      position: "absolute",
+      bottom: "-10%",
+      right: "-10%",
+      width: "50vw",
+      height: "50vw",
+      background:
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob3: {
+      position: "absolute",
+      top: "40%",
+      left: "30%",
+      width: "40vw",
+      height: "40vw",
+      background:
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(90px)",
+      opacity: 0.4,
+      zIndex: 0,
+    },
+    container: {
+      width: "100%",
+      maxWidth: "900px",
+      position: "relative",
+      zIndex: 10,
+    },
+    shell: {
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.14)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.32)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.32)",
+      background: "rgba(15, 23, 42, 0.96)",
       boxShadow:
-        "0 32px 120px rgba(15,23,42,0.95), 0 0 0 1px rgba(15,23,42,0.8)",
-      padding: "30px 26px 26px",
+        "0 25px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(15,23,42,0.85)",
+      padding: "26px 26px 24px",
       position: "relative",
       overflow: "hidden",
     },
-    glow: {
+    shellInnerGlow: {
       position: "absolute",
-      inset: "-40%",
+      inset: "-35%",
       background:
-        "radial-gradient(circle at 10% 0%, rgba(236,72,153,0.12), transparent 60%)," +
-        "radial-gradient(circle at 90% 0%, rgba(59,130,246,0.1), transparent 60%)," +
-        "radial-gradient(circle at 50% 100%, rgba(45,212,191,0.12), transparent 60%)",
+        "radial-gradient(circle at 0 0, rgba(255,15,123,0.18), transparent 60%)," +
+        "radial-gradient(circle at 100% 0, rgba(59,130,246,0.18), transparent 60%)," +
+        "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.18), transparent 65%)",
+      opacity: 0.9,
       pointerEvents: "none",
     },
-    inner: { position: "relative", zIndex: 1 },
+    shellContent: {
+      position: "relative",
+      zIndex: 1,
+      display: "flex",
+      flexDirection: "column",
+      gap: 18,
+    },
     tag: {
       fontSize: 11,
-      letterSpacing: "0.25em",
+      letterSpacing: "0.2em",
       textTransform: "uppercase",
       color: "#9ca3af",
-      marginBottom: 6,
     },
-    h1: {
+    title: {
+      margin: "4px 0 4px",
       fontSize: 26,
       fontWeight: 800,
-      margin: 0,
-      color: "#e5e7eb",
+      letterSpacing: "-0.02em",
+      color: "#f9fafb",
     },
     subtitle: {
-      marginTop: 6,
+      fontSize: 13,
+      color: "rgba(226,232,240,0.8)",
+      maxWidth: 540,
+    },
+    section: {
+      marginTop: 10,
       fontSize: 12,
-      color: "#9ca3af",
-      maxWidth: 640,
+      lineHeight: 1.75,
+      color: "rgba(226,232,240,0.9)",
     },
     sectionTitle: {
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: 600,
-      marginTop: 18,
       marginBottom: 4,
       color: "#e5e7eb",
     },
-    text: {
-      fontSize: 12,
-      lineHeight: 1.7,
-      color: "#cbd5f5",
-      maxWidth: 820,
-    },
     list: {
-      paddingLeft: 18,
       marginTop: 4,
+      paddingLeft: 18,
       fontSize: 12,
       lineHeight: 1.7,
       color: "#9ca3af",
     },
-    navRow: {
-      marginTop: 18,
+    footerLinks: {
       display: "flex",
       flexWrap: "wrap",
       gap: 10,
+      marginTop: 16,
       fontSize: 11,
     },
     chip: {
+      padding: "5px 11px",
       borderRadius: 999,
-      border: "1px solid rgba(148,163,184,0.6)",
-      padding: "5px 12px",
-      textDecoration: "none",
-      color: "#e5e7eb",
+      border: "1px solid rgba(148,163,184,0.5)",
       background:
-        "radial-gradient(circle at 0 0, rgba(148,163,184,0.18), transparent 60%)",
-    },
-    footnote: {
-      marginTop: 18,
-      fontSize: 10,
-      color: "#9ca3af",
+        "radial-gradient(circle at 0 0, rgba(148,163,184,0.22), transparent 60%)",
+      color: "#e5e7eb",
+      textDecoration: "none",
     },
   };
 
@@ -110,157 +147,127 @@ export default function PrivacyPolicyPage() {
       <Head>
         <title>Privacy Policy – Runway Prompt Studio</title>
       </Head>
+
       <div style={s.page}>
-        <div style={s.card}>
-          <div style={s.glow} />
-          <div style={s.inner}>
-            <div style={s.tag}>Legal</div>
-            <h1 style={s.h1}>Privacy Policy</h1>
-            <p style={s.subtitle}>
-              This Privacy Policy explains how this backend and the Chrome
-              extension collect, use, and store data for the Runway Prompt
-              Studio automation service.
-            </p>
+        <div style={s.blob1} />
+        <div style={s.blob2} />
+        <div style={s.blob3} />
 
-            <h2 style={s.sectionTitle}>1. Data we collect</h2>
-            <p style={s.text}>
-              We collect only the information required to run the Chrome
-              extension, manage licenses, and process payments:
-            </p>
-            <ul style={s.list}>
-              <li>
-                <strong>Account data:</strong> Google account email and display
-                name obtained through Google OAuth sign-in.
-              </li>
-              <li>
-                <strong>Device data:</strong> a generated device identifier used
-                to lock your automation license to a single browser or machine.
-              </li>
-              <li>
-                <strong>Payment data:</strong> QR payment region (PK / INT),
-                transaction ID or reference number, status (pending / approved /
-                rejected), and license expiry date.
-              </li>
-              <li>
-                <strong>Service logs:</strong> basic technical logs for error
-                diagnosis and abuse prevention (e.g. timestamps, API endpoint,
-                success / failure).
-              </li>
-            </ul>
+        <div style={s.container}>
+          <div style={s.shell}>
+            <div style={s.shellInnerGlow} />
+            <div style={s.shellContent}>
+              <header>
+                <div style={s.tag}>Legal</div>
+                <h1 style={s.title}>Privacy Policy</h1>
+                <p style={s.subtitle}>
+                  How Runway Prompt Studio handles the data needed to operate
+                  the Chrome extension, payment backend and device-locked
+                  license system.
+                </p>
+              </header>
 
-            <h2 style={s.sectionTitle}>2. How we use your data</h2>
-            <p style={s.text}>We use this data to:</p>
-            <ul style={s.list}>
-              <li>Authenticate you in the backend and Chrome extension.</li>
-              <li>Verify payments and activate or reject licenses.</li>
-              <li>
-                Enforce a <strong>single-device license lock</strong> and
-                prevent license sharing.
-              </li>
-              <li>
-                Communicate with you about support, billing issues, or suspected
-                abuse.
-              </li>
-            </ul>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>1. Data we collect</div>
+                <p>
+                  To run the automation and licensing system, we collect and
+                  store only a minimal set of information:
+                </p>
+                <ul style={s.list}>
+                  <li>Your Google account email address</li>
+                  <li>
+                    A generated device identifier used to lock your license to a
+                    browser / machine
+                  </li>
+                  <li>
+                    Payment-related references such as QR transaction IDs,
+                    region (PK / INT) and status (pending, approved, expired,
+                    rejected)
+                  </li>
+                  <li>Timestamps related to license validity and device usage</li>
+                </ul>
+              </section>
 
-            <h2 style={s.sectionTitle}>3. Data storage and retention</h2>
-            <p style={s.text}>
-              Data is stored in a managed Postgres database (Neon) and on the
-              hosting provider used for this backend (for example, Vercel). We
-              keep:
-            </p>
-            <ul style={s.list}>
-              <li>
-                Account and device data as long as your extension account could
-                still be in use or reasonably reactivated.
-              </li>
-              <li>
-                Payment records for bookkeeping, fraud prevention, and audit
-                purposes.
-              </li>
-              <li>
-                Logs for a limited time necessary to investigate incidents and
-                maintain service reliability.
-              </li>
-            </ul>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>2. What we do not collect</div>
+                <p>
+                  We do <strong>not</strong> store your Runway projects, assets
+                  or credit information. We also do not store card numbers or
+                  bank credentials – payments are executed in your own wallet /
+                  banking app via QR.
+                </p>
+              </section>
 
-            <h2 style={s.sectionTitle}>4. Third-party services</h2>
-            <p style={s.text}>
-              We rely on third parties to provide core infrastructure:
-            </p>
-            <ul style={s.list}>
-              <li>Google OAuth for sign-in and basic user profile data.</li>
-              <li>Database and hosting providers to store and serve data.</li>
-              <li>
-                Optional analytics or error-tracking tools, if enabled in the
-                future (these will be described in an updated version of this
-                policy).
-              </li>
-            </ul>
-            <p style={s.text}>
-              These third parties process data under their own privacy policies
-              and security practices.
-            </p>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>3. How your data is used</div>
+                <p>
+                  Your data is only used for:
+                </p>
+                <ul style={s.list}>
+                  <li>verifying that you have an active paid license,</li>
+                  <li>enforcing the one-device-per-account rule, and</li>
+                  <li>
+                    allowing the extension to check license status when it runs
+                    on <code style={{ fontSize: 11 }}>app.runwayml.com</code>.
+                  </li>
+                </ul>
+                <p style={{ marginTop: 6 }}>
+                  We may also review transaction IDs during manual approval to
+                  prevent abuse or fraudulent payments.
+                </p>
+              </section>
 
-            <h2 style={s.sectionTitle}>5. Cookies and similar technologies</h2>
-            <p style={s.text}>
-              The backend may use session cookies or tokens to keep you signed
-              in after logging in with Google. If additional tracking or
-              analytics cookies are added, this page will be updated to describe
-              them. You can clear cookies in your browser to sign out and reset
-              sessions.
-            </p>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>4. Third-party services</div>
+                <p>
+                  The backend is hosted on modern cloud infrastructure (for
+                  example Vercel and Neon/Postgres). These providers may process
+                  logs and metadata as part of their normal operations. Your use
+                  of RunwayML itself is governed by{" "}
+                  <a
+                    href="https://runwayml.com/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: "#93c5fd", textDecoration: "underline" }}
+                  >
+                    RunwayML&apos;s own Privacy Policy
+                  </a>
+                  .
+                </p>
+              </section>
 
-            <h2 style={s.sectionTitle}>6. Your choices and rights</h2>
-            <p style={s.text}>
-              Depending on your location, you may have rights to access, update,
-              or delete certain information. You can:
-            </p>
-            <ul style={s.list}>
-              <li>
-                Sign out and stop using the Chrome extension and this backend.
-              </li>
-              <li>
-                Request that your account and license records be removed, where
-                technically and legally possible.
-              </li>
-            </ul>
-            <p style={s.text}>
-              To make a request, contact the project owner using the support
-              email advertised inside the extension or payment page.
-            </p>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>5. Retention and deletion</div>
+                <p>
+                  License and payment records may be kept as long as necessary
+                  for accounting, support and abuse-prevention purposes. If you
+                  would like your account and associated records removed, you
+                  can contact support using the email shown in your payment or
+                  extension documentation.
+                </p>
+              </section>
 
-            <h2 style={s.sectionTitle}>7. Data security</h2>
-            <p style={s.text}>
-              Reasonable technical and organizational measures are used to
-              protect your data (encrypted connections, restricted admin panel,
-              server-side checks). No online service can guarantee perfect
-              security, but we aim to minimise the data stored and limit access
-              to it.
-            </p>
+              <section style={s.section}>
+                <div style={s.sectionTitle}>6. Contact</div>
+                <p>
+                  If you have questions about this policy or how your data is
+                  handled, please reach out via the support email listed in the
+                  extension or QR payment instructions.
+                </p>
+              </section>
 
-            <h2 style={s.sectionTitle}>8. Changes to this policy</h2>
-            <p style={s.text}>
-              This Privacy Policy may be updated from time to time as the
-              service evolves. When changes are made, a revised version will be
-              published at this URL. Continued use of the extension or backend
-              after an update means you accept the new version.
-            </p>
-
-            <div style={s.navRow}>
-              <Link href="/" style={s.chip}>
-                Back to main portal
-              </Link>
-              <Link href="/legal/terms" style={s.chip}>
-                View Terms of Service
-              </Link>
+              <div style={s.footerLinks}>
+                <Link href="/" style={s.chip}>
+                  Back to portal
+                </Link>
+                <Link href="/user/payments" style={s.chip}>
+                  Open payment page
+                </Link>
+                <Link href="/legal/terms" style={s.chip}>
+                  Terms of Service
+                </Link>
+              </div>
             </div>
-
-            <p style={s.footnote}>
-              This document is provided for transparency and does not constitute
-              legal advice. If you have strict legal or regulatory requirements,
-              you should have this policy reviewed by a qualified professional.
-            </p>
           </div>
         </div>
       </div>
