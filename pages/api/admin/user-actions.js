@@ -46,28 +46,39 @@ export default async function handler(req, res) {
       return extRows[0] || null;
     }
 
-    // create or update subscription:
-    //  - if existingRow exists -> update (status=approved, new valid_until)
-    //  - if not -> create new row with status=approved
-    async function upsertSubscription({ targetDays }) {
+    /**
+     * upsertSubscription
+     *
+     * mode = "extend"
+     *   - used for extend_30
+     *   - if existing approved + still valid -> extend from existing valid_until
+     *
+     * mode = "absolute"
+     *   - used for set_days
+     *   - ignore existing valid_until, always compute from NOW
+     *   - so if user has 10 days left and you set 5 -> becomes exactly 5, not 15
+     */
+    async function upsertSubscription({ targetDays, mode = "extend" }) {
       const existing = await loadLatestExt();
-      const region = existing?.region || "PK"; // default PK, you can change
+      const region = existing?.region || "PK"; // default PK
 
       const now = new Date();
       let base = now;
 
-      // If already approved and valid_until in future, extend from that date
       if (
+        mode === "extend" &&
         existing &&
         existing.status === "approved" &&
         existing.valid_until
       ) {
         const existingEnd = new Date(existing.valid_until);
         if (existingEnd.getTime() > now.getTime()) {
+          // extend from current valid_until when still in future
           base = existingEnd;
         }
       }
 
+      // For mode === "absolute", base stays "now" (no extension from old date)
       const newEnd = new Date(
         base.getTime() + targetDays * 24 * 60 * 60 * 1000
       );
@@ -111,8 +122,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // EXTEND: add 30 days on top of remaining (if still active)
     if (action === "extend_30") {
-      await upsertSubscription({ targetDays: 30 });
+      await upsertSubscription({ targetDays: 30, mode: "extend" });
       return res.status(200).json({ ok: true });
     }
 
@@ -121,13 +133,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // SET absolute remaining days (10 -> 5 = exactly 5, not 15)
     if (action === "set_days") {
       const intDays = parseInt(days, 10);
       if (Number.isNaN(intDays) || intDays < 0) {
         return res.status(400).json({ error: "Invalid days value" });
       }
-      // IMPORTANT: this works even if no subscription exists yet
-      await upsertSubscription({ targetDays: intDays });
+      // IMPORTANT: mode = "absolute" -> always from NOW
+      await upsertSubscription({ targetDays: intDays, mode: "absolute" });
       return res.status(200).json({ ok: true });
     }
 

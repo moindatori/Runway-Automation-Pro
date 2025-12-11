@@ -16,14 +16,35 @@ function isAdminEmail(email) {
   return false;
 }
 
+// Shared label pill
 function Badge({ tone = "gray", children }) {
   const map = {
-    gray: { bg: "rgba(148,163,184,0.2)", color: "#e5e7eb" },
-    green: { bg: "rgba(34,197,94,0.18)", color: "#bbf7d0" },
-    red: { bg: "rgba(239,68,68,0.18)", color: "#fecaca" },
-    blue: { bg: "rgba(59,130,246,0.18)", color: "#bfdbfe" },
-    purple: { bg: "rgba(129,140,248,0.2)", color: "#e0e7ff" },
-    orange: { bg: "rgba(249,115,22,0.18)", color: "#fed7aa" }
+    gray: {
+      bg: "rgba(148,163,184,0.18)",
+      color: "#e5e7eb"
+    },
+    green: {
+      bg: "rgba(34,197,94,0.16)",
+      color: "#bbf7d0"
+    },
+    red: {
+      bg: "rgba(239,68,68,0.16)",
+      color: "#fecaca"
+    },
+    // Re-skin “blue” to a magenta/pink style (no pure blue)
+    blue: {
+      bg: "rgba(244,114,182,0.18)",
+      color: "#f9a8d4"
+    },
+    // Re-skin “purple” to a pink-violet tone
+    purple: {
+      bg: "rgba(192,132,252,0.18)",
+      color: "#e9d5ff"
+    },
+    orange: {
+      bg: "rgba(249,115,22,0.16)",
+      color: "#fed7aa"
+    }
   };
   const p = map[tone] || map.gray;
 
@@ -47,6 +68,7 @@ function Badge({ tone = "gray", children }) {
   );
 }
 
+// Left sidebar – re-skinned to match extension glass style
 function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
   const items = [
     { id: "dashboard", label: "Dashboard" },
@@ -59,19 +81,34 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
     <aside
       style={{
         width: 260,
-        background: "rgba(4,7,20,0.98)",
+        background:
+          "radial-gradient(circle at 0 0, rgba(255,15,123,0.24), transparent 55%), rgba(4,7,20,0.98)",
         color: "#e5e7eb",
         display: "flex",
         flexDirection: "column",
         padding: "24px 18px",
-        boxShadow: "8px 0 50px rgba(15,23,42,0.8)",
-        borderRight: "1px solid rgba(148,163,184,0.35)",
+        boxShadow: "18px 0 80px rgba(0,0,0,0.9)",
+        borderRight: "1px solid rgba(148,163,184,0.3)",
         backdropFilter: "blur(32px)",
-        WebkitBackdropFilter: "blur(32px)"
+        WebkitBackdropFilter: "blur(32px)",
+        position: "relative",
+        zIndex: 20
       }}
     >
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 20, fontWeight: 800 }}>Admin Panel</div>
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 800,
+            background:
+              "linear-gradient(120deg,#ff0f7b 0%,#f97316 40%,#22c55e 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            letterSpacing: -0.02
+          }}
+        >
+          Admin Panel
+        </div>
         <div style={{ fontSize: 12, color: "#9ca3af" }}>
           Runway Prompt Studio
         </div>
@@ -93,13 +130,16 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 background: active
-                  ? "linear-gradient(135deg,#ff6ac1,#fbbf24)"
+                  ? "linear-gradient(135deg,#ff0f7b,#f97316)"
                   : "transparent",
-                color: active ? "#0b1020" : "#cbd5f5",
+                color: active ? "#020617" : "#e5e7eb",
                 boxShadow: active
-                  ? "0 12px 40px rgba(251,191,36,0.55)"
+                  ? "0 14px 46px rgba(248,113,113,0.7)"
                   : "none",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
+                border: active
+                  ? "1px solid rgba(254,249,195,0.8)"
+                  : "1px solid transparent"
               }}
             >
               {item.label}
@@ -112,11 +152,11 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
         <div
           style={{
             borderRadius: 18,
-            border: "1px solid rgba(148,163,184,0.45)",
+            border: "1px solid rgba(148,163,184,0.4)",
             padding: 12,
             fontSize: 12,
             background:
-              "radial-gradient(circle at top left, rgba(129,140,248,0.25), transparent 55%), rgba(6,9,26,0.98)"
+              "radial-gradient(circle at top left, rgba(248,113,113,0.25), transparent 55%), rgba(6,9,26,0.98)"
           }}
         >
           <div style={{ fontWeight: 500, color: "#e5e7eb" }}>Signed in</div>
@@ -130,17 +170,18 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
   );
 }
 
+// Top stat cards – re-skinned
 function StatCard({ title, value, helper, icon }) {
   return (
     <div
       style={{
         flex: "1 1 180px",
         background:
-          "radial-gradient(circle at top left, rgba(129,140,248,0.12), transparent 55%), rgba(6,11,30,0.96)",
+          "radial-gradient(circle at top left, rgba(255,15,123,0.18), transparent 60%), rgba(6,11,30,0.97)",
         borderRadius: 20,
         padding: 18,
-        border: "1px solid rgba(30,64,175,0.55)",
-        boxShadow: "0 24px 70px rgba(15,23,42,0.9)",
+        border: "1px solid rgba(248,250,252,0.06)",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.95)",
         display: "flex",
         flexDirection: "column",
         gap: 4,
@@ -161,13 +202,14 @@ function StatCard({ title, value, helper, icon }) {
               width: 26,
               height: 26,
               borderRadius: 999,
-              background: "rgba(30,64,175,0.45)",
+              background:
+                "radial-gradient(circle at 0 0, rgba(248,113,113,0.45), transparent 60%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 13,
-              color: "#c7d2fe",
-              boxShadow: "0 10px 30px rgba(30,64,175,0.7)"
+              color: "#fee2e2",
+              boxShadow: "0 10px 32px rgba(248,113,113,0.7)"
             }}
           >
             {icon}
@@ -184,6 +226,7 @@ function StatCard({ title, value, helper, icon }) {
   );
 }
 
+// Payment filter tabs – no blue
 function FilterTabs({ current, setCurrent }) {
   const tabs = [
     { id: "all", label: "All" },
@@ -200,8 +243,8 @@ function FilterTabs({ current, setCurrent }) {
         borderRadius: 999,
         background: "rgba(6,11,30,0.95)",
         padding: 2,
-        border: "1px solid rgba(148,163,184,0.6)",
-        boxShadow: "0 14px 40px rgba(15,23,42,0.9)"
+        border: "1px solid rgba(148,163,184,0.45)",
+        boxShadow: "0 14px 40px rgba(0,0,0,0.95)"
       }}
     >
       {tabs.map((t) => {
@@ -217,12 +260,12 @@ function FilterTabs({ current, setCurrent }) {
               fontSize: 12,
               cursor: "pointer",
               background: active
-                ? "linear-gradient(135deg,#6366f1,#ec4899)"
+                ? "linear-gradient(135deg,#ff0f7b,#f97316)"
                 : "transparent",
-              color: active ? "#0b1020" : "#94a3b8",
+              color: active ? "#020617" : "#94a3b8",
               fontWeight: active ? 600 : 500,
               boxShadow: active
-                ? "0 10px 35px rgba(99,102,241,0.7)"
+                ? "0 12px 40px rgba(248,113,113,0.7)"
                 : "none",
               transition: "all 0.2s ease"
             }}
@@ -245,7 +288,7 @@ export default function AdminPage({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [generatedToken, setGeneratedToken] = useState("");
-  // NEW: editable remaining days per user
+  // editable remaining days per user
   const [daysDraft, setDaysDraft] = useState({});
 
   const filteredPayments = useMemo(() => {
@@ -282,7 +325,7 @@ export default function AdminPage({
     }
   }
 
-  // UPDATED: support extra payload and new set_days action
+  // user actions: reset_device, extend_30, cancel_subscription, set_days
   async function handleUserAction(userId, action, extra = {}) {
     let msg = "";
     if (action === "reset_device") msg = "Reset device lock for this user?";
@@ -299,6 +342,8 @@ export default function AdminPage({
       const res = await fetch("/api/admin/user-actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // IMPORTANT: backend should treat "set_days" as absolute days,
+        // NOT "add days". See note below.
         body: JSON.stringify({ userId, action, ...extra })
       });
       const data = await res.json().catch(() => null);
@@ -372,8 +417,8 @@ export default function AdminPage({
       flex: 1,
       minHeight: "100vh",
       background:
-        "radial-gradient(circle at 50% 0%, rgba(56,189,248,0.2), transparent 55%), rgba(3,7,18,0.96)",
-      borderTop: "1px solid rgba(148,163,184,0.5)",
+        "radial-gradient(circle at 50% 0%, rgba(34,197,94,0.18), transparent 55%), rgba(3,7,18,0.96)",
+      borderTop: "1px solid rgba(148,163,184,0.4)",
       borderLeft: "1px solid rgba(15,23,42,0.9)"
     },
     main: {
@@ -385,19 +430,19 @@ export default function AdminPage({
     },
     panel: {
       background:
-        "radial-gradient(circle at top left, rgba(129,140,248,0.16), transparent 55%), rgba(6,11,30,0.98)",
+        "radial-gradient(circle at top left, rgba(255,15,123,0.18), transparent 55%), rgba(6,11,30,0.98)",
       borderRadius: 24,
-      border: "1px solid rgba(30,64,175,0.6)",
+      border: "1px solid rgba(248,250,252,0.06)",
       padding: 18,
-      boxShadow: "0 22px 80px rgba(15,23,42,0.95)"
+      boxShadow: "0 22px 80px rgba(0,0,0,0.96)"
     },
     tablePanel: {
       background:
-        "radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 55%), rgba(3,7,18,0.98)",
+        "radial-gradient(circle at top left, rgba(248,113,113,0.18), transparent 55%), rgba(3,7,18,0.98)",
       borderRadius: 24,
-      border: "1px solid rgba(30,64,175,0.7)",
+      border: "1px solid rgba(248,250,252,0.06)",
       padding: 18,
-      boxShadow: "0 26px 90px rgba(15,23,42,0.98)",
+      boxShadow: "0 26px 90px rgba(0,0,0,0.98)",
       overflowX: "auto"
     }
   };
@@ -582,7 +627,7 @@ export default function AdminPage({
                   }}
                 >
                   <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.9)" }}>
+                    <tr style={{ borderBottom: "1px solid rgba(15,23,42,0.9)" }}>
                       <th
                         style={{
                           textAlign: "left",
@@ -760,7 +805,7 @@ export default function AdminPage({
                                 <Badge>No subscription</Badge>
                               )}
                             </td>
-                            {/* UPDATED: editable remaining days */}
+                            {/* Editable remaining days */}
                             <td
                               style={{
                                 padding: "8px 6px",
@@ -802,8 +847,8 @@ export default function AdminPage({
                                     style={{
                                       ...actionBtnBase,
                                       background:
-                                        "rgba(59,130,246,0.25)",
-                                      color: "#bfdbfe"
+                                        "linear-gradient(135deg,#f97316,#fb7185)",
+                                      color: "#020617"
                                     }}
                                     onClick={() => {
                                       const num = parseInt(
@@ -877,8 +922,11 @@ export default function AdminPage({
                                 <button
                                   style={{
                                     ...actionBtnBase,
-                                    background: "rgba(129,140,248,0.22)",
-                                    color: "#e0e7ff"
+                                    background:
+                                      "rgba(248,250,252,0.06)",
+                                    color: "#e5e7eb",
+                                    border:
+                                      "1px solid rgba(148,163,184,0.7)"
                                   }}
                                   onClick={() =>
                                     handleUserAction(u.id, "reset_device")
@@ -890,7 +938,8 @@ export default function AdminPage({
                                   disabled={!hasActive}
                                   style={{
                                     ...actionBtnBase,
-                                    background: "rgba(34,197,94,0.25)",
+                                    background:
+                                      "rgba(34,197,94,0.22)",
                                     color: "#bbf7d0",
                                     opacity: hasActive ? 1 : 0.4,
                                     cursor: hasActive
@@ -908,7 +957,8 @@ export default function AdminPage({
                                   disabled={!hasActive}
                                   style={{
                                     ...actionBtnBase,
-                                    background: "rgba(248,113,113,0.2)",
+                                    background:
+                                      "rgba(248,113,113,0.22)",
                                     color: "#fecaca",
                                     opacity: hasActive ? 1 : 0.4,
                                     cursor: hasActive
@@ -983,14 +1033,14 @@ export default function AdminPage({
                     onClick={() => window.location.reload()}
                     style={{
                       borderRadius: 999,
-                      border: "1px solid rgba(148,163,184,0.55)",
+                      border: "1px solid rgba(148,163,184,0.45)",
                       padding: "7px 14px",
                       background:
-                        "radial-gradient(circle at top left, rgba(129,140,248,0.2), transparent 55%), rgba(6,11,30,0.98)",
+                        "radial-gradient(circle at top left, rgba(248,113,113,0.24), transparent 55%), rgba(6,11,30,0.98)",
                       fontSize: 12,
                       cursor: "pointer",
                       color: "#e5e7eb",
-                      boxShadow: "0 14px 40px rgba(15,23,42,0.85)"
+                      boxShadow: "0 14px 40px rgba(0,0,0,0.9)"
                     }}
                   >
                     Refresh
@@ -1059,14 +1109,14 @@ export default function AdminPage({
                         key={p.id}
                         style={{
                           background:
-                            "radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 55%), rgba(6,11,30,0.98)",
+                            "radial-gradient(circle at top left, rgba(255,15,123,0.22), transparent 55%), rgba(6,11,30,0.98)",
                           borderRadius: 22,
-                          border: "1px solid rgba(30,64,175,0.7)",
+                          border: "1px solid rgba(248,250,252,0.08)",
                           padding: 18,
                           display: "flex",
                           justifyContent: "space-between",
                           gap: 18,
-                          boxShadow: "0 24px 90px rgba(15,23,42,0.98)"
+                          boxShadow: "0 24px 90px rgba(0,0,0,0.98)"
                         }}
                       >
                         <div style={{ flex: 1 }}>
@@ -1318,7 +1368,7 @@ export default function AdminPage({
                   style={{
                     marginTop: 16,
                     paddingTop: 14,
-                    borderTop: "1px solid rgba(148,163,184,0.5)"
+                    borderTop: "1px solid rgba(148,163,184,0.45)"
                   }}
                 >
                   <h2
@@ -1366,15 +1416,15 @@ export default function AdminPage({
                     onClick={generateNewToken}
                     style={{
                       borderRadius: 999,
-                      border: "1px solid rgba(129,140,248,0.8)",
+                      border: "1px solid rgba(248,250,252,0.18)",
                       padding: "7px 14px",
                       background:
-                        "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                      color: "#f9fafb",
+                        "linear-gradient(135deg,#ff0f7b,#f97316)",
+                      color: "#020617",
                       fontSize: 12,
                       cursor: "pointer",
                       fontWeight: 600,
-                      boxShadow: "0 16px 50px rgba(79,70,229,0.7)"
+                      boxShadow: "0 16px 50px rgba(248,113,113,0.7)"
                     }}
                   >
                     Generate new random token
@@ -1388,7 +1438,7 @@ export default function AdminPage({
                         background: "rgba(6,11,30,0.98)",
                         borderRadius: 10,
                         padding: 10,
-                        border: "1px solid rgba(30,64,175,0.7)"
+                        border: "1px solid rgba(248,250,252,0.08)"
                       }}
                     >
                       <div
@@ -1422,6 +1472,9 @@ export default function AdminPage({
   );
 }
 
+// =======================
+// SERVER-SIDE PROPS
+// =======================
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session || !isAdminEmail(session.user?.email)) {
@@ -1518,7 +1571,7 @@ export async function getServerSideProps(context) {
         const end = new Date(u.valid_until);
         const diffMs = end.getTime() - now.getTime();
         if (diffMs > 0) {
-          // UPDATED: floor so it actually counts down
+          // floor so it actually counts down day by day
           daysRemaining = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         } else {
           daysRemaining = 0;
