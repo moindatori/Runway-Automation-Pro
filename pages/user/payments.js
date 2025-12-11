@@ -1,5 +1,3 @@
-// pages/user/payments.js
-
 import React, { useState, useEffect } from "react";
 
 // --- Icons (Clean & Sharp) ---
@@ -130,82 +128,68 @@ export default function UserPaymentsPage() {
   const [region, setRegion] = useState("PK");
 
   // Payment logic
-  // checking | none | pending | active | rejected
-  const [paymentStatus, setPaymentStatus] = useState("checking");
+  const [paymentStatus, setPaymentStatus] = useState("checking"); // checking | none | pending | active | rejected
   const [existingTxId, setExistingTxId] = useState("");
   const [txIdInput, setTxIdInput] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
 
-  // Responsive grid
+  // For responsive grid without breaking SSR
   const [isNarrow, setIsNarrow] = useState(false);
 
   const isPK = region === "PK";
   const qrUrl = isPK ? "/qr/pk_1000.png" : "/qr/intl_10usd.png";
   const amountText = isPK ? "Rs1000 / 30 days" : "$10 / 30 days";
 
-  // Form should be visible but read-only for pending/active
+  // If pending/active: show form + button but keep them disabled
   const isFormReadOnly =
     paymentStatus === "pending" || paymentStatus === "active";
 
   // Load current payment / subscription status
   useEffect(() => {
     let cancelled = false;
-
     async function fetchStatus() {
       try {
         setPaymentStatus("checking");
         setSubmitError("");
-        const res = await fetch("/api/user/payments/status", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const res = await fetch("/api/user/payments/status");
         if (!res.ok) throw new Error("Unable to read payment status.");
         const data = await res.json();
-
         if (cancelled) return;
 
-        // Try to normalize status from various possible keys
-        const rawStatus =
+        // Normalize status in case backend uses different casing/field
+        const rawStatus = (
           data.status ||
           data.subscriptionStatus ||
-          data.subscription_status ||
-          data.subscription?.status ||
-          (data.active ? "active" : undefined) ||
-          (data.pending ? "pending" : undefined) ||
-          "none";
+          "none"
+        )
+          .toString()
+          .toLowerCase();
 
-        const normalizedStatus = String(rawStatus).toLowerCase();
+        const normalizedStatus =
+          rawStatus === "active" ||
+          rawStatus === "pending" ||
+          rawStatus === "rejected" ||
+          rawStatus === "none"
+            ? rawStatus
+            : "none";
 
-        let mappedStatus: "active" | "pending" | "rejected" | "none" =
-          "none";
-        if (normalizedStatus.includes("active")) mappedStatus = "active";
-        else if (normalizedStatus.includes("pending"))
-          mappedStatus = "pending";
-        else if (normalizedStatus.includes("reject"))
-          mappedStatus = "rejected";
-        else mappedStatus = "none";
+        setPaymentStatus(normalizedStatus);
 
-        // Try to read a transaction id from multiple possible fields
-        const tx =
+        // Try a few common keys for transaction id
+        setExistingTxId(
           data.transactionId ||
-          data.txId ||
-          data.latestTransactionId ||
-          data.lastTransactionId ||
-          data.paymentTxId ||
-          data.lastPayment?.transactionId ||
-          "";
-
-        setPaymentStatus(mappedStatus);
-        setExistingTxId(tx || "");
+            data.txId ||
+            (data.payment && data.payment.transactionId) ||
+            ""
+        );
       } catch (err) {
         if (cancelled) return;
         setPaymentStatus("none");
         setExistingTxId("");
       }
     }
-
     fetchStatus();
     return () => {
       cancelled = true;
@@ -270,7 +254,7 @@ export default function UserPaymentsPage() {
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#0f0c29",
+      background: "#0f0c29", // Deep dark base
       fontFamily: "'Inter', system-ui, sans-serif",
       position: "relative",
       overflow: "hidden",
@@ -287,7 +271,7 @@ export default function UserPaymentsPage() {
       width: "60vw",
       height: "60vw",
       background:
-        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)", // Hot Pink
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -299,7 +283,7 @@ export default function UserPaymentsPage() {
       width: "50vw",
       height: "50vw",
       background:
-        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)", // Vibrant Orange
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -311,7 +295,7 @@ export default function UserPaymentsPage() {
       width: "40vw",
       height: "40vw",
       background:
-        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)", // Purple
       filter: "blur(90px)",
       opacity: 0.4,
       zIndex: 0,
@@ -632,7 +616,6 @@ export default function UserPaymentsPage() {
                 <li style={s.stepItem}>
                   <div style={s.stepNum}>2</div>
                   <div style={s.stepText}>
-                    {/* TEXT CHANGED AS REQUESTED */}
                     Send exactly <strong>{amountText}</strong>.
                   </div>
                 </li>
@@ -654,7 +637,7 @@ export default function UserPaymentsPage() {
               </ul>
             </div>
 
-            {/* Transaction Form (always visible; disabled when active/pending) */}
+            {/* Transaction Form */}
             <div style={s.glassPanel}>
               <div style={s.sectionTitle}>Verify Payment</div>
               <form onSubmit={handleSubmitTransaction}>
@@ -662,9 +645,7 @@ export default function UserPaymentsPage() {
                   style={s.input}
                   placeholder="Enter Transaction ID"
                   value={
-                    isFormReadOnly && existingTxId
-                      ? existingTxId
-                      : txIdInput
+                    isFormReadOnly && existingTxId ? existingTxId : txIdInput
                   }
                   onChange={(e) =>
                     !isFormReadOnly && setTxIdInput(e.target.value)
