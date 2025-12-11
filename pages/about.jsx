@@ -1,20 +1,30 @@
-import React from "react";
-import Head from "next/head";
+// pages/about.js
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function AboutPage() {
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setIsNarrow(window.innerWidth < 800);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const s = {
     page: {
       minHeight: "100vh",
       background: "#0f0c29",
-      fontFamily:
-        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: "'Inter', system-ui, sans-serif",
       position: "relative",
       overflow: "hidden",
       display: "flex",
       justifyContent: "center",
       padding: "80px 20px",
-      color: "#e5e7eb",
     },
     blob1: {
       position: "absolute",
@@ -54,220 +64,180 @@ export default function AboutPage() {
     },
     container: {
       width: "100%",
-      maxWidth: "900px",
+      maxWidth: "1000px",
       position: "relative",
       zIndex: 10,
-    },
-    shell: {
-      borderRadius: "30px",
-      border: "1px solid rgba(255, 255, 255, 0.14)",
-      borderTop: "1px solid rgba(255, 255, 255, 0.32)",
-      borderLeft: "1px solid rgba(255, 255, 255, 0.32)",
-      background: "rgba(15, 23, 42, 0.96)",
-      boxShadow:
-        "0 25px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(15,23,42,0.85)",
-      padding: "26px 26px 24px",
-      position: "relative",
-      overflow: "hidden",
-    },
-    shellInnerGlow: {
-      position: "absolute",
-      inset: "-35%",
-      background:
-        "radial-gradient(circle at 0 0, rgba(255,15,123,0.18), transparent 60%)," +
-        "radial-gradient(circle at 100% 0, rgba(59,130,246,0.18), transparent 60%)," +
-        "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.18), transparent 65%)",
-      opacity: 0.9,
-      pointerEvents: "none",
-    },
-    shellContent: {
-      position: "relative",
-      zIndex: 1,
       display: "flex",
       flexDirection: "column",
-      gap: 20,
+      gap: "30px",
     },
     header: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      gap: 16,
-      flexWrap: "wrap",
+      textAlign: "center",
+      marginBottom: "20px",
     },
-    tag: {
-      fontSize: 11,
-      letterSpacing: "0.2em",
-      textTransform: "uppercase",
-      color: "#9ca3af",
-    },
-    title: {
-      margin: "4px 0 4px",
-      fontSize: 26,
-      fontWeight: 800,
-      letterSpacing: "-0.02em",
-      color: "#f9fafb",
+    h1: {
+      fontSize: "42px",
+      fontWeight: "800",
+      letterSpacing: "-1px",
+      color: "#fff",
+      margin: "0 0 10px 0",
+      textShadow: "0 4px 20px rgba(0,0,0,0.3)",
     },
     subtitle: {
-      fontSize: 13,
-      color: "rgba(226,232,240,0.8)",
-      maxWidth: 520,
+      fontSize: "16px",
+      color: "rgba(255,255,255,0.7)",
+      fontWeight: "500",
     },
-    main: {
-      display: "grid",
-      gridTemplateColumns: "minmax(0, 1.5fr) minmax(0, 1.1fr)",
-      gap: 20,
+    statusPill: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "8px 16px",
+      borderRadius: "100px",
+      fontSize: "13px",
+      fontWeight: "600",
+      background: "rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.18)",
+      color: "#e5e7eb",
+      backdropFilter: "blur(10px)",
+      margin: "0 auto 20px",
     },
-    column: {
-      borderRadius: 22,
-      padding: "18px 18px 16px",
-      border: "1px solid rgba(148,163,184,0.45)",
-      background:
-        "radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 55%), rgba(15,23,42,0.96)",
-      boxShadow: "0 22px 60px rgba(15,23,42,0.9)",
-      fontSize: 12,
+    grid: {
+      display: isNarrow ? "flex" : "grid",
+      flexDirection: isNarrow ? "column" : undefined,
+      gridTemplateColumns: isNarrow ? undefined : "repeat(12, 1fr)",
+      gap: "24px",
     },
-    columnAlt: {
-      borderRadius: 22,
-      padding: "18px 18px 16px",
-      border: "1px solid rgba(148,163,184,0.45)",
-      background:
-        "radial-gradient(circle at 100% 0, rgba(236,72,153,0.32), transparent 55%), rgba(15,23,42,0.96)",
-      boxShadow: "0 22px 60px rgba(15,23,42,0.9)",
-      fontSize: 12,
+    glassPanel: {
+      background: "rgba(255, 255, 255, 0.03)",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)",
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.15)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.3)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.3)",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      padding: "40px",
+      color: "#fff",
+      overflow: "hidden",
+      position: "relative",
+    },
+    leftCol: {
+      gridColumn: isNarrow ? undefined : "span 7",
+      marginBottom: isNarrow ? "20px" : 0,
+    },
+    rightCol: {
+      gridColumn: isNarrow ? undefined : "span 5",
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
     },
     sectionTitle: {
-      fontSize: 14,
-      fontWeight: 600,
-      marginBottom: 6,
-      color: "#e5e7eb",
+      fontSize: "20px",
+      fontWeight: "700",
+      marginBottom: "16px",
+      textShadow: "0 2px 4px rgba(0,0,0,0.2)",
     },
-    body: {
-      fontSize: 12,
+    paragraph: {
+      fontSize: "14px",
       lineHeight: 1.7,
-      color: "rgba(226,232,240,0.85)",
+      color: "rgba(255,255,255,0.78)",
+      marginBottom: "10px",
     },
-    list: {
-      marginTop: 6,
-      paddingLeft: 18,
-      fontSize: 12,
-      lineHeight: 1.7,
-      color: "#9ca3af",
+    bulletList: {
+      listStyle: "disc",
+      paddingLeft: "20px",
+      margin: 0,
+      fontSize: "14px",
+      color: "rgba(255,255,255,0.75)",
     },
-    chipsRow: {
+    chipRow: {
       display: "flex",
       flexWrap: "wrap",
-      gap: 8,
-      marginTop: 10,
-      fontSize: 11,
+      gap: "10px",
+      marginTop: "16px",
     },
-    chip: {
-      padding: "4px 10px",
-      borderRadius: 999,
-      border: "1px solid rgba(148,163,184,0.5)",
-      background:
-        "radial-gradient(circle at 0 0, rgba(148,163,184,0.22), transparent 60%)",
-      color: "#e5e7eb",
+    chipLink: {
+      padding: "8px 16px",
+      borderRadius: "999px",
+      border: "1px solid rgba(255,255,255,0.22)",
+      background: "rgba(0,0,0,0.35)",
+      color: "#fff",
+      fontSize: "13px",
       textDecoration: "none",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
     },
   };
 
   return (
-    <>
-      <Head>
-        <title>About – Runway Prompt Studio</title>
-      </Head>
+    <div style={s.page}>
+      <div style={s.blob1} />
+      <div style={s.blob2} />
+      <div style={s.blob3} />
 
-      <div style={s.page}>
-        <div style={s.blob1} />
-        <div style={s.blob2} />
-        <div style={s.blob3} />
+      <div style={s.container}>
+        <div style={s.header}>
+          <div style={s.statusPill}>About Runway Prompt Studio</div>
+          <h1 style={s.h1}>Independent automation toolkit</h1>
+          <div style={s.subtitle}>
+            Built to speed up RunwayML Gen-4 workflows with a secure,
+            device-locked Chrome extension and backend.
+          </div>
+        </div>
 
-        <div style={s.container}>
-          <div style={s.shell}>
-            <div style={s.shellInnerGlow} />
-            <div style={s.shellContent}>
-              <header style={s.header}>
-                <div>
-                  <div style={s.tag}>Runway Prompt Studio</div>
-                  <h1 style={s.title}>About this project</h1>
-                  <p style={s.subtitle}>
-                    A Chrome extension and backend that automate prompt
-                    workflows for RunwayML&apos;s Gen-4 tools, with device-locked
-                    licensing and QR-based subscriptions.
-                  </p>
-                </div>
-              </header>
+        <div style={s.grid}>
+          <div style={{ ...s.glassPanel, ...s.leftCol }}>
+            <div style={s.sectionTitle}>What this project does</div>
+            <p style={s.paragraph}>
+              Runway Prompt Studio combines a Chrome extension, a backend and
+              your own RunwayML account. The goal is simple: automate boring
+              steps while you stay inside{" "}
+              <code style={{ fontSize: 12 }}>app.runwayml.com</code>.
+            </p>
+            <ul style={s.bulletList}>
+              <li>Floating UI over Runway&apos;s interface</li>
+              <li>CSV-driven prompts and motion presets</li>
+              <li>Image-to-video helper flows</li>
+              <li>Secure license check tied to your Google account</li>
+            </ul>
+            <p style={{ ...s.paragraph, marginTop: "12px" }}>
+              Only minimal data is stored: your email, device ID and
+              payment-related reference so the license system can work.
+            </p>
+          </div>
 
-              <main style={s.main}>
-                <section style={s.column}>
-                  <div style={s.sectionTitle}>What it does</div>
-                  <p style={s.body}>
-                    Runway Prompt Studio is built to speed up everyday work
-                    inside <code style={{ fontSize: 11 }}>app.runwayml.com</code>
-                    . It focuses on:
-                  </p>
-                  <ul style={s.list}>
-                    <li>floating UI panels and automation helpers</li>
-                    <li>bulk prompt generation and CSV-driven flows</li>
-                    <li>image-to-video prompt presets and fine-tuned motion</li>
-                    <li>simple QR payments and manual license control</li>
-                  </ul>
-                  <p style={{ ...s.body, marginTop: 8 }}>
-                    The backend you are viewing stores only what is required to
-                    link your browser device, your Google account and your
-                    payment reference.
-                  </p>
-                </section>
+          <div style={{ ...s.glassPanel, ...s.rightCol }}>
+            <div style={s.sectionTitle}>Not affiliated with RunwayML</div>
+            <p style={s.paragraph}>
+              This is an independent project. It is not owned by or officially
+              connected to Runway or RunwayML. All trademarks and product names
+              belong to their respective owners.
+            </p>
+            <p style={s.paragraph}>
+              You are responsible for how you use Runway Prompt Studio and
+              RunwayML together. Always follow RunwayML&apos;s own terms and
+              content policies.
+            </p>
 
-                <aside style={s.columnAlt}>
-                  <div style={s.sectionTitle}>Independent tool</div>
-                  <p style={s.body}>
-                    Runway Prompt Studio is an independent project. It is{" "}
-                    <strong>not</strong> affiliated with, endorsed by, or
-                    sponsored by Runway / RunwayML. All trademarks are the
-                    property of their respective owners.
-                  </p>
-
-                  <p style={{ ...s.body, marginTop: 10 }}>
-                    You remain responsible for how you use RunwayML. Always
-                    follow RunwayML&apos;s own{" "}
-                    <a
-                      href="https://runwayml.com/terms"
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ color: "#93c5fd", textDecoration: "underline" }}
-                    >
-                      Terms
-                    </a>{" "}
-                    and{" "}
-                    <a
-                      href="https://runwayml.com/privacy"
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ color: "#93c5fd", textDecoration: "underline" }}
-                    >
-                      Privacy Policy
-                    </a>
-                    .
-                  </p>
-
-                  <div style={s.chipsRow}>
-                    <Link href="/legal/privacy" style={s.chip}>
-                      Privacy Policy
-                    </Link>
-                    <Link href="/legal/terms" style={s.chip}>
-                      Terms of Service
-                    </Link>
-                    <Link href="/user/payments" style={s.chip}>
-                      Open payment page
-                    </Link>
-                  </div>
-                </aside>
-              </main>
+            <div style={s.chipRow}>
+              <Link href="/user/payments" style={s.chipLink}>
+                Open payment &amp; license page
+              </Link>
+              <Link href="/legal/privacy" style={s.chipLink}>
+                Privacy Policy
+              </Link>
+              <Link href="/legal/terms" style={s.chipLink}>
+                Terms of Service
+              </Link>
+              <Link href="/" style={s.chipLink}>
+                Back to portal home
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,20 +1,30 @@
-import React from "react";
-import Head from "next/head";
+// pages/legal/terms.js
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function TermsPage() {
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setIsNarrow(window.innerWidth < 800);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const s = {
     page: {
       minHeight: "100vh",
       background: "#0f0c29",
-      fontFamily:
-        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: "'Inter', system-ui, sans-serif",
       position: "relative",
       overflow: "hidden",
       display: "flex",
       justifyContent: "center",
       padding: "80px 20px",
-      color: "#e5e7eb",
     },
     blob1: {
       position: "absolute",
@@ -54,235 +64,188 @@ export default function TermsPage() {
     },
     container: {
       width: "100%",
-      maxWidth: "900px",
+      maxWidth: "1000px",
       position: "relative",
       zIndex: 10,
-    },
-    shell: {
-      borderRadius: "30px",
-      border: "1px solid rgba(255, 255, 255, 0.14)",
-      borderTop: "1px solid rgba(255, 255, 255, 0.32)",
-      borderLeft: "1px solid rgba(255, 255, 255, 0.32)",
-      background: "rgba(15, 23, 42, 0.96)",
-      boxShadow:
-        "0 25px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(15,23,42,0.85)",
-      padding: "26px 26px 24px",
-      position: "relative",
-      overflow: "hidden",
-    },
-    shellInnerGlow: {
-      position: "absolute",
-      inset: "-35%",
-      background:
-        "radial-gradient(circle at 0 0, rgba(255,15,123,0.18), transparent 60%)," +
-        "radial-gradient(circle at 100% 0, rgba(59,130,246,0.18), transparent 60%)," +
-        "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.18), transparent 65%)",
-      opacity: 0.9,
-      pointerEvents: "none",
-    },
-    shellContent: {
-      position: "relative",
-      zIndex: 1,
       display: "flex",
       flexDirection: "column",
-      gap: 18,
+      gap: "30px",
     },
-    tag: {
-      fontSize: 11,
-      letterSpacing: "0.2em",
-      textTransform: "uppercase",
-      color: "#9ca3af",
-    },
-    title: {
-      margin: "4px 0 4px",
-      fontSize: 26,
-      fontWeight: 800,
-      letterSpacing: "-0.02em",
-      color: "#f9fafb",
+    header: { textAlign: "center", marginBottom: "20px" },
+    h1: {
+      fontSize: "42px",
+      fontWeight: "800",
+      letterSpacing: "-1px",
+      color: "#fff",
+      margin: "0 0 10px 0",
+      textShadow: "0 4px 20px rgba(0,0,0,0.3)",
     },
     subtitle: {
-      fontSize: 13,
-      color: "rgba(226,232,240,0.8)",
-      maxWidth: 540,
+      fontSize: "16px",
+      color: "rgba(255,255,255,0.7)",
+      fontWeight: "500",
     },
-    section: {
-      marginTop: 10,
-      fontSize: 12,
-      lineHeight: 1.75,
-      color: "rgba(226,232,240,0.9)",
-    },
-    sectionTitle: {
-      fontSize: 13,
-      fontWeight: 600,
-      marginBottom: 4,
+    statusPill: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "8px 16px",
+      borderRadius: "100px",
+      fontSize: "13px",
+      fontWeight: "600",
+      background: "rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.18)",
       color: "#e5e7eb",
+      backdropFilter: "blur(10px)",
+      margin: "0 auto 20px",
     },
-    list: {
-      marginTop: 4,
-      paddingLeft: 18,
-      fontSize: 12,
-      lineHeight: 1.7,
-      color: "#9ca3af",
+    glassPanel: {
+      background: "rgba(255, 255, 255, 0.03)",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)",
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.15)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.3)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.3)",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      padding: "32px 40px 30px",
+      color: "#fff",
+      overflow: "hidden",
+      position: "relative",
     },
-    footerLinks: {
+    section: { marginBottom: "16px" },
+    sectionTitle: {
+      fontSize: "18px",
+      fontWeight: "700",
+      marginBottom: "8px",
+      textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    },
+    paragraph: {
+      fontSize: "14px",
+      lineHeight: 1.75,
+      color: "rgba(255,255,255,0.8)",
+      marginBottom: "10px",
+    },
+    bulletList: {
+      listStyle: "disc",
+      paddingLeft: "20px",
+      margin: 0,
+      fontSize: "14px",
+      color: "rgba(255,255,255,0.78)",
+    },
+    chips: {
       display: "flex",
       flexWrap: "wrap",
-      gap: 10,
-      marginTop: 16,
-      fontSize: 11,
+      gap: "10px",
+      marginTop: "18px",
     },
-    chip: {
-      padding: "5px 11px",
-      borderRadius: 999,
-      border: "1px solid rgba(148,163,184,0.5)",
-      background:
-        "radial-gradient(circle at 0 0, rgba(148,163,184,0.22), transparent 60%)",
-      color: "#e5e7eb",
+    chipLink: {
+      padding: "8px 16px",
+      borderRadius: "999px",
+      border: "1px solid rgba(255,255,255,0.22)",
+      background: "rgba(0,0,0,0.35)",
+      color: "#fff",
+      fontSize: "13px",
       textDecoration: "none",
     },
   };
 
   return (
-    <>
-      <Head>
-        <title>Terms of Service – Runway Prompt Studio</title>
-      </Head>
+    <div style={s.page}>
+      <div style={s.blob1} />
+      <div style={s.blob2} />
+      <div style={s.blob3} />
 
-      <div style={s.page}>
-        <div style={s.blob1} />
-        <div style={s.blob2} />
-        <div style={s.blob3} />
+      <div style={s.container}>
+        <div style={s.header}>
+          <div style={s.statusPill}>Terms of Service</div>
+          <h1 style={s.h1}>Rules for using this tool</h1>
+          <div style={s.subtitle}>
+            License scope, device locks, payments and your responsibilities when
+            using the extension with RunwayML.
+          </div>
+        </div>
 
-        <div style={s.container}>
-          <div style={s.shell}>
-            <div style={s.shellInnerGlow} />
-            <div style={s.shellContent}>
-              <header>
-                <div style={s.tag}>Legal</div>
-                <h1 style={s.title}>Terms of Service</h1>
-                <p style={s.subtitle}>
-                  These terms govern your use of the Runway Prompt Studio Chrome
-                  extension and the associated backend used for licensing and
-                  payments.
-                </p>
-              </header>
+        <div style={s.glassPanel}>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>1. Independent project</div>
+            <p style={s.paragraph}>
+              Runway Prompt Studio is an independent tool. It is not affiliated
+              with, endorsed by or sponsored by Runway / RunwayML. Your use of
+              RunwayML stays governed by RunwayML&apos;s own terms and
+              policies.
+            </p>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>1. Relationship to RunwayML</div>
-                <p>
-                  Runway Prompt Studio is an independent tool built to automate
-                  workflows inside{" "}
-                  <code style={{ fontSize: 11 }}>app.runwayml.com</code>.
-                  It is not affiliated with, endorsed by, or sponsored by
-                  Runway / RunwayML. Your Runway account remains subject to
-                  RunwayML&apos;s own{" "}
-                  <a
-                    href="https://runwayml.com/terms"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: "#93c5fd", textDecoration: "underline" }}
-                  >
-                    Terms of Service
-                  </a>
-                  .
-                </p>
-              </section>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>2. License &amp; device lock</div>
+            <ul style={s.bulletList}>
+              <li>
+                One paid license is linked to one Google account and one device
+                at a time.
+              </li>
+              <li>
+                The license may be moved to a new device via manual reset by
+                admin, at the developer&apos;s discretion.
+              </li>
+              <li>
+                You agree not to bypass the device lock or share your access
+                publicly.
+              </li>
+            </ul>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>2. License &amp; usage</div>
-                <ul style={s.list}>
-                  <li>
-                    A paid license is granted on a{" "}
-                    <strong>per-Google account, per device</strong> basis.
-                  </li>
-                  <li>
-                    You may not resell, share, or sub-license your access or
-                    try to bypass the device-lock system.
-                  </li>
-                  <li>
-                    The extension is provided for your own Runway projects and
-                    compliant creative workflows only.
-                  </li>
-                </ul>
-              </section>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>3. Payments and duration</div>
+            <p style={s.paragraph}>
+              Payments are collected via QR and manually reviewed. When a
+              payment is approved, your license is activated for a defined
+              period (for example, 30 days). If a payment is rejected,
+              fraudulent or refunded, access can be limited or revoked.
+            </p>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>3. Payments and renewals</div>
-                <p>
-                  Payments are processed manually through QR codes and reviewed
-                  before activation:
-                </p>
-                <ul style={s.list}>
-                  <li>
-                    Each approved payment unlocks the extension for a defined
-                    period (for example 30 days).
-                  </li>
-                  <li>
-                    If a payment is rejected or refunded, access may be revoked
-                    or shortened.
-                  </li>
-                  <li>
-                    No guarantee is made that pricing will remain the same in
-                    the future.
-                  </li>
-                </ul>
-              </section>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>4. Acceptable use</div>
+            <p style={s.paragraph}>
+              You must use the extension in a way that complies with all
+              applicable laws, as well as RunwayML&apos;s own acceptable use
+              policies. Any abuse (spam, harassment, automated misuse) may lead
+              to immediate termination of your license without refund.
+            </p>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>4. Device lock &amp; resets</div>
-                <p>
-                  To prevent sharing, one license is tied to a single device
-                  identifier. Moving to a new machine or browser may require a
-                  manual reset via the admin panel, at the developer&apos;s
-                  discretion.
-                </p>
-              </section>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>5. No warranty</div>
+            <p style={s.paragraph}>
+              This tool is provided on an &quot;as is&quot; basis, without
+              warranties of any kind. To the maximum extent permitted by law,
+              the developer is not liable for indirect or consequential damages
+              resulting from your use of the extension or backend.
+            </p>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>5. Acceptable use</div>
-                <p>
-                  You agree not to use Runway Prompt Studio to violate any
-                  applicable law, RunwayML&apos;s policies, or the terms of any
-                  other platform or service. Abuse (including spam, scraping, or
-                  automated harassment) may result in immediate termination.
-                </p>
-              </section>
+          <div style={s.section}>
+            <div style={s.sectionTitle}>6. Changes to these terms</div>
+            <p style={s.paragraph}>
+              These terms may change over time. Continued use of the portal and
+              extension after updates means you accept the updated version.
+            </p>
+          </div>
 
-              <section style={s.section}>
-                <div style={s.sectionTitle}>6. Warranty &amp; liability</div>
-                <p>
-                  The extension and backend are provided on an{" "}
-                  <strong>&quot;as-is&quot;</strong> basis without warranties of
-                  any kind. To the maximum extent permitted by law, the
-                  developer will not be liable for any indirect, incidental or
-                  consequential damages arising from your use of this tool.
-                </p>
-              </section>
-
-              <section style={s.section}>
-                <div style={s.sectionTitle}>7. Changes to these terms</div>
-                <p>
-                  These terms may be updated over time. Continued use of the
-                  extension after changes are published will mean you accept the
-                  revised terms.
-                </p>
-              </section>
-
-              <div style={s.footerLinks}>
-                <Link href="/" style={s.chip}>
-                  Back to portal
-                </Link>
-                <Link href="/user/payments" style={s.chip}>
-                  Open payment page
-                </Link>
-                <Link href="/legal/privacy" style={s.chip}>
-                  Privacy Policy
-                </Link>
-              </div>
-            </div>
+          <div style={s.chips}>
+            <Link href="/" style={s.chipLink}>
+              Back to portal
+            </Link>
+            <Link href="/user/payments" style={s.chipLink}>
+              Payment &amp; License page
+            </Link>
+            <Link href="/legal/privacy" style={s.chipLink}>
+              Privacy Policy
+            </Link>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
