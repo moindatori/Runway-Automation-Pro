@@ -1,3 +1,5 @@
+// pages/user/payments.js
+
 import React, { useState, useEffect } from "react";
 
 // --- Icons (Clean & Sharp) ---
@@ -207,7 +209,7 @@ export default function UserPaymentsPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Submit transaction ID (same pending behaviour as extension)
+  // Submit transaction ID
   async function handleSubmitTransaction(e) {
     e.preventDefault();
     if (isFormReadOnly) return;
@@ -254,7 +256,7 @@ export default function UserPaymentsPage() {
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#0f0c29", // Deep dark base
+      background: "#0f0c29",
       fontFamily: "'Inter', system-ui, sans-serif",
       position: "relative",
       overflow: "hidden",
@@ -271,7 +273,7 @@ export default function UserPaymentsPage() {
       width: "60vw",
       height: "60vw",
       background:
-        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)", // Hot Pink
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -283,7 +285,7 @@ export default function UserPaymentsPage() {
       width: "50vw",
       height: "50vw",
       background:
-        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)", // Vibrant Orange
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -295,7 +297,7 @@ export default function UserPaymentsPage() {
       width: "40vw",
       height: "40vw",
       background:
-        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)", // Purple
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(90px)",
       opacity: 0.4,
       zIndex: 0,

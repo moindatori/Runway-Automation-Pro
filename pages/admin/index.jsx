@@ -18,12 +18,12 @@ function isAdminEmail(email) {
 
 function Badge({ tone = "gray", children }) {
   const map = {
-    gray: { bg: "#f3f4f6", color: "#4b5563" },
-    green: { bg: "#dcfce7", color: "#166534" },
-    red: { bg: "#fee2e2", color: "#b91c1c" },
-    blue: { bg: "#dbeafe", color: "#1d4ed8" },
-    purple: { bg: "#ede9fe", color: "#6d28d9" },
-    orange: { bg: "#ffedd5", color: "#c2410c" }
+    gray: { bg: "rgba(148,163,184,0.2)", color: "#e5e7eb" },
+    green: { bg: "rgba(34,197,94,0.18)", color: "#bbf7d0" },
+    red: { bg: "rgba(239,68,68,0.18)", color: "#fecaca" },
+    blue: { bg: "rgba(59,130,246,0.18)", color: "#bfdbfe" },
+    purple: { bg: "rgba(129,140,248,0.2)", color: "#e0e7ff" },
+    orange: { bg: "rgba(249,115,22,0.18)", color: "#fed7aa" }
   };
   const p = map[tone] || map.gray;
 
@@ -59,12 +59,15 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
     <aside
       style={{
         width: 240,
-        background: "#020617",
+        background: "rgba(15,23,42,0.96)",
         color: "#e5e7eb",
         display: "flex",
         flexDirection: "column",
         padding: "18px 16px",
-        boxShadow: "4px 0 20px rgba(15,23,42,0.45)"
+        boxShadow: "4px 0 40px rgba(15,23,42,0.8)",
+        borderRight: "1px solid rgba(148,163,184,0.35)",
+        backdropFilter: "blur(32px)",
+        WebkitBackdropFilter: "blur(32px)"
       }}
     >
       <div style={{ marginBottom: 26 }}>
@@ -90,9 +93,13 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 background: active
-                  ? "linear-gradient(90deg,#7c3aed,#4f46e5)"
+                  ? "linear-gradient(135deg,#6366f1,#ec4899)"
                   : "transparent",
-                color: active ? "#f9fafb" : "#d1d5db"
+                color: active ? "#f9fafb" : "#cbd5f5",
+                boxShadow: active
+                  ? "0 10px 30px rgba(99,102,241,0.6)"
+                  : "none",
+                transition: "all 0.2s ease"
               }}
             >
               {item.label}
@@ -104,14 +111,15 @@ function Sidebar({ activeTab, setActiveTab, sessionEmail }) {
       <div style={{ marginTop: "auto" }}>
         <div
           style={{
-            borderRadius: 14,
-            border: "1px solid rgba(148,163,184,0.35)",
+            borderRadius: 18,
+            border: "1px solid rgba(148,163,184,0.45)",
             padding: 10,
             fontSize: 12,
-            background: "rgba(15,23,42,0.95)"
+            background:
+              "radial-gradient(circle at top left, rgba(129,140,248,0.25), transparent 55%), rgba(15,23,42,0.98)"
           }}
         >
-          <div style={{ fontWeight: 500 }}>Signed in</div>
+          <div style={{ fontWeight: 500, color: "#e5e7eb" }}>Signed in</div>
           <div style={{ fontSize: 11, color: "#9ca3af" }}>{sessionEmail}</div>
           <div style={{ marginTop: 6 }}>
             <Badge tone="green">Administrator</Badge>
@@ -127,11 +135,12 @@ function StatCard({ title, value, helper, icon }) {
     <div
       style={{
         flex: "1 1 180px",
-        background: "#ffffff",
-        borderRadius: 16,
-        padding: 16,
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 12px 30px rgba(15,23,42,0.06)",
+        background:
+          "radial-gradient(circle at top left, rgba(129,140,248,0.12), transparent 55%), rgba(15,23,42,0.96)",
+        borderRadius: 20,
+        padding: 18,
+        border: "1px solid rgba(148,163,184,0.55)",
+        boxShadow: "0 24px 70px rgba(15,23,42,0.85)",
         display: "flex",
         flexDirection: "column",
         gap: 4,
@@ -145,30 +154,31 @@ function StatCard({ title, value, helper, icon }) {
           alignItems: "center"
         }}
       >
-        <div style={{ fontSize: 12, color: "#6b7280" }}>{title}</div>
+        <div style={{ fontSize: 12, color: "#9ca3af" }}>{title}</div>
         {icon && (
           <div
             style={{
-              width: 24,
-              height: 24,
+              width: 26,
+              height: 26,
               borderRadius: 999,
-              background: "rgba(129,140,248,0.1)",
+              background: "rgba(30,64,175,0.35)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 13,
-              color: "#4f46e5"
+              color: "#c7d2fe",
+              boxShadow: "0 10px 30px rgba(30,64,175,0.7)"
             }}
           >
             {icon}
           </div>
         )}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>
+      <div style={{ fontSize: 24, fontWeight: 700, color: "#f9fafb" }}>
         {value}
       </div>
       {helper && (
-        <div style={{ fontSize: 11, color: "#9ca3af" }}>{helper}</div>
+        <div style={{ fontSize: 11, color: "#94a3b8" }}>{helper}</div>
       )}
     </div>
   );
@@ -188,9 +198,10 @@ function FilterTabs({ current, setCurrent }) {
       style={{
         display: "inline-flex",
         borderRadius: 999,
-        background: "#f3f4f6",
+        background: "rgba(15,23,42,0.9)",
         padding: 2,
-        border: "1px solid #e5e7eb"
+        border: "1px solid rgba(148,163,184,0.5)",
+        boxShadow: "0 14px 40px rgba(15,23,42,0.8)"
       }}
     >
       {tabs.map((t) => {
@@ -202,12 +213,18 @@ function FilterTabs({ current, setCurrent }) {
             style={{
               border: "none",
               borderRadius: 999,
-              padding: "5px 16px",
+              padding: "6px 16px",
               fontSize: 12,
               cursor: "pointer",
-              background: active ? "#ffffff" : "transparent",
-              color: active ? "#111827" : "#6b7280",
-              fontWeight: active ? 600 : 500
+              background: active
+                ? "linear-gradient(135deg,#6366f1,#ec4899)"
+                : "transparent",
+              color: active ? "#f9fafb" : "#94a3b8",
+              fontWeight: active ? 600 : 500,
+              boxShadow: active
+                ? "0 10px 35px rgba(99,102,241,0.7)"
+                : "none",
+              transition: "all 0.2s ease"
             }}
           >
             {t.label}
@@ -304,947 +321,1042 @@ export default function AdminPage({
     setGeneratedToken(token);
   }
 
+  // ----------------------------------------------------------------
+  // GLASS + BLOB STYLES (same look as payments page)
+  // ----------------------------------------------------------------
+  const s = {
+    page: {
+      minHeight: "100vh",
+      background: "#0f0c29",
+      fontFamily: "'Inter', system-ui, sans-serif",
+      position: "relative",
+      overflow: "hidden",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: "60px 20px"
+    },
+    blob1: {
+      position: "absolute",
+      top: "-15%",
+      left: "-10%",
+      width: "60vw",
+      height: "60vw",
+      background:
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0
+    },
+    blob2: {
+      position: "absolute",
+      bottom: "-10%",
+      right: "-10%",
+      width: "50vw",
+      height: "50vw",
+      background:
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0
+    },
+    blob3: {
+      position: "absolute",
+      top: "40%",
+      left: "30%",
+      width: "40vw",
+      height: "40vw",
+      background:
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
+      filter: "blur(90px)",
+      opacity: 0.4,
+      zIndex: 0
+    },
+    shell: {
+      width: "100%",
+      maxWidth: 1280,
+      minHeight: "80vh",
+      position: "relative",
+      zIndex: 10,
+      display: "flex",
+      borderRadius: 28,
+      background: "rgba(15,23,42,0.9)",
+      border: "1px solid rgba(148,163,184,0.55)",
+      boxShadow: "0 30px 90px rgba(15,23,42,0.95)",
+      overflow: "hidden",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)"
+    },
+    main: {
+      flex: 1,
+      padding: "22px 28px",
+      color: "#e5e7eb",
+      overflowY: "auto",
+      maxHeight: "calc(100vh - 120px)"
+    },
+    panel: {
+      background:
+        "radial-gradient(circle at top left, rgba(129,140,248,0.16), transparent 55%), rgba(15,23,42,0.96)",
+      borderRadius: 20,
+      border: "1px solid rgba(148,163,184,0.55)",
+      padding: 18,
+      boxShadow: "0 20px 70px rgba(15,23,42,0.9)"
+    },
+    tablePanel: {
+      background:
+        "radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%), rgba(15,23,42,0.98)",
+      borderRadius: 20,
+      border: "1px solid rgba(148,163,184,0.55)",
+      padding: 18,
+      boxShadow: "0 24px 80px rgba(15,23,42,0.95)",
+      overflowX: "auto"
+    },
+    cardHeaderMain: {
+      fontSize: 16,
+      margin: 0,
+      marginBottom: 8,
+      color: "#e5e7eb"
+    },
+    headerTitleMain: {
+      fontSize: 26,
+      margin: 0,
+      color: "#f9fafb",
+      textShadow: "0 4px 20px rgba(0,0,0,0.6)"
+    },
+    headerSubtitle: {
+      fontSize: 13,
+      color: "#9ca3af",
+      marginTop: 4
+    }
+  };
+
+  const headerTextColor = "#f9fafb";
+  const subTextMuted = "#9ca3af";
+
   return (
-    <div
-      style={{ display: "flex", minHeight: "100vh", background: "#f3f4f6" }}
-    >
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        sessionEmail={sessionEmail}
-      />
+    <div style={s.page}>
+      <div style={s.blob1} />
+      <div style={s.blob2} />
+      <div style={s.blob3} />
 
-      <main style={{ flex: 1, padding: "22px 28px" }}>
-        {activeTab === "dashboard" && (
-          <>
-            <header style={{ marginBottom: 20 }}>
-              <h1
-                style={{
-                  fontSize: 26,
-                  margin: 0,
-                  color: "#111827"
-                }}
-              >
-                Dashboard Overview
-              </h1>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  marginTop: 4
-                }}
-              >
-                Monitor your extension users, active licenses, and revenue.
-              </p>
-            </header>
+      <div style={s.shell}>
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          sessionEmail={sessionEmail}
+        />
 
-            <section
-              style={{
-                display: "flex",
-                gap: 14,
-                flexWrap: "wrap",
-                marginBottom: 20
-              }}
-            >
-              <StatCard
-                title="Total Users"
-                value={stats.totalUsers}
-                helper="Registered emails in users table"
-                icon="👥"
-              />
-              <StatCard
-                title="Users with Subscription"
-                value={stats.usersWithSub}
-                helper="Emails with an approved, active extension license"
-                icon="⭐"
-              />
-              <StatCard
-                title="Earnings (PKR)"
-                value={stats.totalPkr}
-                helper="All-time approved PKR extension revenue"
-                icon="₨"
-              />
-              <StatCard
-                title="Earnings (USD)"
-                value={stats.totalUsd}
-                helper="All-time approved USD extension revenue"
-                icon="$"
-              />
-            </section>
-
-            <section
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
-                gap: 16,
-                alignItems: "stretch"
-              }}
-            >
-              <div
-                style={{
-                  background: "#ffffff",
-                  borderRadius: 16,
-                  border: "1px solid #e5e7eb",
-                  padding: 16
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: 16,
-                    margin: 0,
-                    marginBottom: 8
-                  }}
-                >
-                  Recent Activity
-                </h2>
-                <p style={{ fontSize: 13, color: "#6b7280" }}>
-                  Latest user registrations and subscription changes will
-                  appear here in future iterations. For now, you already see
-                  live extension stats above.
+        <main style={s.main}>
+          {activeTab === "dashboard" && (
+            <>
+              <header style={{ marginBottom: 20 }}>
+                <h1 style={s.headerTitleMain}>Dashboard Overview</h1>
+                <p style={s.headerSubtitle}>
+                  Monitor your extension users, active licenses, and revenue.
                 </p>
-              </div>
+              </header>
 
-              <div
+              <section
                 style={{
-                  background: "#ffffff",
-                  borderRadius: 16,
-                  border: "1px solid #e5e7eb",
-                  padding: 16
+                  display: "flex",
+                  gap: 14,
+                  flexWrap: "wrap",
+                  marginBottom: 20
                 }}
               >
-                <h2
-                  style={{
-                    fontSize: 16,
-                    margin: 0,
-                    marginBottom: 8
-                  }}
-                >
-                  System Health
-                </h2>
-                <div style={{ display: "grid", rowGap: 6, fontSize: 13 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between"
-                    }}
-                  >
-                    <span>API Status</span>
-                    <Badge tone="green">Operational</Badge>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between"
-                    }}
-                  >
-                    <span>Database</span>
-                    <Badge tone="green">Connected</Badge>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between"
-                    }}
-                  >
-                    <span>Extension payments</span>
-                    <Badge tone={pendingCount ? "orange" : "green"}>
-                      {pendingCount ? `${pendingCount} pending` : "All clear"}
-                    </Badge>
+                <StatCard
+                  title="Total Users"
+                  value={stats.totalUsers}
+                  helper="Registered emails in users table"
+                  icon="👥"
+                />
+                <StatCard
+                  title="Users with Subscription"
+                  value={stats.usersWithSub}
+                  helper="Emails with an approved, active extension license"
+                  icon="⭐"
+                />
+                <StatCard
+                  title="Earnings (PKR)"
+                  value={stats.totalPkr}
+                  helper="All-time approved PKR extension revenue"
+                  icon="₨"
+                />
+                <StatCard
+                  title="Earnings (USD)"
+                  value={stats.totalUsd}
+                  helper="All-time approved USD extension revenue"
+                  icon="$"
+                />
+              </section>
+
+              <section
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+                  gap: 16,
+                  alignItems: "stretch"
+                }}
+              >
+                <div style={s.panel}>
+                  <h2 style={s.cardHeaderMain}>Recent Activity</h2>
+                  <p style={{ fontSize: 13, color: subTextMuted }}>
+                    Latest user registrations and subscription changes will
+                    appear here in future iterations. For now, you already see
+                    live extension stats above.
+                  </p>
+                </div>
+
+                <div style={s.panel}>
+                  <h2 style={s.cardHeaderMain}>System Health</h2>
+                  <div style={{ display: "grid", rowGap: 6, fontSize: 13 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between"
+                      }}
+                    >
+                      <span>API Status</span>
+                      <Badge tone="green">Operational</Badge>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between"
+                      }}
+                    >
+                      <span>Database</span>
+                      <Badge tone="green">Connected</Badge>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between"
+                      }}
+                    >
+                      <span>Extension payments</span>
+                      <Badge tone={pendingCount ? "orange" : "green"}>
+                        {pendingCount ? `${pendingCount} pending` : "All clear"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          </>
-        )}
+              </section>
+            </>
+          )}
 
-        {activeTab === "users" && (
-          <>
-            <header style={{ marginBottom: 18 }}>
-              <h1
-                style={{
-                  fontSize: 24,
-                  margin: 0,
-                  color: "#111827"
-                }}
-              >
-                User Management
-              </h1>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  marginTop: 4
-                }}
-              >
-                View registered users, their devices and extension subscription
-                status. Use admin actions to reset device or manage license.
-              </p>
-            </header>
-
-            <section
-              style={{
-                background: "#ffffff",
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
-                padding: 16,
-                overflowX: "auto"
-              }}
-            >
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: 13,
-                  minWidth: 980
-                }}
-              >
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      User
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Subscription
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Status
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Remaining days
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Device ID
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Device updated
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Registered
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px 6px",
-                        fontSize: 12,
-                        color: "#6b7280"
-                      }}
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        style={{ padding: "10px 6px", color: "#6b7280" }}
-                      >
-                        No users yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    users.map((u) => {
-                      const statusTone =
-                        u.sub_status === "approved"
-                          ? "green"
-                          : u.sub_status === "pending"
-                          ? "orange"
-                          : u.sub_status === "cancelled" ||
-                            u.sub_status === "rejected"
-                          ? "red"
-                          : "gray";
-
-                      const deviceShort =
-                        u.device_id && u.device_id.length > 16
-                          ? `${u.device_id.slice(0, 16)}…`
-                          : u.device_id || "-";
-
-                      const hasActive =
-                        u.sub_status === "approved" &&
-                        (u.daysRemaining == null || u.daysRemaining > 0);
-
-                      const actionBtnBase = {
-                        borderRadius: 999,
-                        padding: "5px 10px",
-                        fontSize: 11,
-                        cursor: "pointer",
-                        border: "none"
-                      };
-
-                      return (
-                        <tr
-                          key={u.id}
-                          style={{ borderBottom: "1px solid #f3f4f6" }}
-                        >
-                          <td style={{ padding: "8px 6px" }}>
-                            <div style={{ fontWeight: 600 }}>
-                              {u.name || u.email}
-                            </div>
-                            <div
-                              style={{ fontSize: 11, color: "#6b7280" }}
-                            >
-                              {u.email}
-                            </div>
-                          </td>
-                          <td style={{ padding: "8px 6px" }}>
-                            {u.plan_code ? (
-                              <Badge tone="blue">{u.plan_code}</Badge>
-                            ) : (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  color: "#9ca3af"
-                                }}
-                              >
-                                No extension plan
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ padding: "8px 6px" }}>
-                            {u.sub_status ? (
-                              <Badge tone={statusTone}>
-                                {u.sub_status}
-                              </Badge>
-                            ) : (
-                              <Badge>No subscription</Badge>
-                            )}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px 6px",
-                              fontSize: 12,
-                              color: "#6b7280"
-                            }}
-                          >
-                            {u.daysRemaining != null
-                              ? `${u.daysRemaining} days`
-                              : "-"}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px 6px",
-                              fontSize: 12,
-                              color: "#6b7280"
-                            }}
-                          >
-                            {deviceShort}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px 6px",
-                              fontSize: 12,
-                              color: "#6b7280"
-                            }}
-                          >
-                            {u.last_updated
-                              ? new Date(
-                                  u.last_updated
-                                ).toLocaleString()
-                              : "-"}
-                          </td>
-                          <td
-                            style={{
-                              padding: "8px 6px",
-                              fontSize: 12,
-                              color: "#6b7280"
-                            }}
-                          >
-                            {new Date(
-                              u.created_at
-                            ).toLocaleDateString()}
-                          </td>
-                          <td style={{ padding: "8px 6px" }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: 6,
-                                flexWrap: "wrap"
-                              }}
-                            >
-                              <button
-                                style={{
-                                  ...actionBtnBase,
-                                  background: "#eef2ff",
-                                  color: "#4f46e5"
-                                }}
-                                onClick={() =>
-                                  handleUserAction(u.id, "reset_device")
-                                }
-                              >
-                                Reset device
-                              </button>
-                              <button
-                                disabled={!hasActive}
-                                style={{
-                                  ...actionBtnBase,
-                                  background: "#dcfce7",
-                                  color: "#166534",
-                                  opacity: hasActive ? 1 : 0.4,
-                                  cursor: hasActive
-                                    ? "pointer"
-                                    : "not-allowed"
-                                }}
-                                onClick={() =>
-                                  hasActive &&
-                                  handleUserAction(u.id, "extend_30")
-                                }
-                              >
-                                Extend 30d
-                              </button>
-                              <button
-                                disabled={!hasActive}
-                                style={{
-                                  ...actionBtnBase,
-                                  background: "#fee2e2",
-                                  color: "#b91c1c",
-                                  opacity: hasActive ? 1 : 0.4,
-                                  cursor: hasActive
-                                    ? "pointer"
-                                    : "not-allowed"
-                                }}
-                                onClick={() =>
-                                  hasActive &&
-                                  handleUserAction(
-                                    u.id,
-                                    "cancel_subscription"
-                                  )
-                                }
-                              >
-                                Cancel sub
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </section>
-          </>
-        )}
-
-        {activeTab === "payments" && (
-          <>
-            <header
-              style={{
-                marginBottom: 16,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <div>
+          {activeTab === "users" && (
+            <>
+              <header style={{ marginBottom: 18 }}>
                 <h1
                   style={{
                     fontSize: 24,
                     margin: 0,
-                    color: "#111827"
+                    color: headerTextColor
                   }}
                 >
-                  Extension Payment Requests
+                  User Management
                 </h1>
                 <p
                   style={{
                     fontSize: 13,
-                    color: "#6b7280",
+                    color: subTextMuted,
                     marginTop: 4
                   }}
                 >
-                  Review QR payments from the Chrome extension and approve or
-                  reject licenses.
+                  View registered users, their devices and extension subscription
+                  status. Use admin actions to reset device or manage license.
                 </p>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12
-                }}
-              >
-                <FilterTabs
-                  current={paymentFilter}
-                  setCurrent={setPaymentFilter}
-                />
-                <button
-                  onClick={() => window.location.reload()}
-                  style={{
-                    borderRadius: 999,
-                    border: "1px solid #e5e7eb",
-                    padding: "7px 14px",
-                    background: "#ffffff",
-                    fontSize: 12,
-                    cursor: "pointer"
-                  }}
-                >
-                  Refresh
-                </button>
-              </div>
-            </header>
+              </header>
 
-            <section
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 12,
-                maxHeight: "calc(100vh - 170px)",
-                overflowY: "auto"
-              }}
-            >
-              {filteredPayments.length === 0 ? (
-                <div
+              <section style={s.tablePanel}>
+                <table
                   style={{
-                    background: "#ffffff",
-                    borderRadius: 16,
-                    border: "1px solid #e5e7eb",
-                    padding: 16,
+                    width: "100%",
+                    borderCollapse: "collapse",
                     fontSize: 13,
-                    color: "#6b7280"
+                    minWidth: 980
                   }}
                 >
-                  No extension payments in this filter.
-                </div>
-              ) : (
-                filteredPayments.map((p) => {
-                  const tone =
-                    p.status === "approved"
-                      ? "green"
-                      : p.status === "rejected"
-                      ? "red"
-                      : p.status === "cancelled"
-                      ? "red"
-                      : "orange";
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid rgba(51,65,85,0.9)" }}>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        User
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Subscription
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Status
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Remaining days
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Device ID
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Device updated
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Registered
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 6px",
+                          fontSize: 12,
+                          color: "#9ca3af"
+                        }}
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          style={{
+                            padding: "10px 6px",
+                            color: "#9ca3af"
+                          }}
+                        >
+                          No users yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      users.map((u) => {
+                        const statusTone =
+                          u.sub_status === "approved"
+                            ? "green"
+                            : u.sub_status === "pending"
+                            ? "orange"
+                            : u.sub_status === "cancelled" ||
+                              u.sub_status === "rejected"
+                            ? "red"
+                            : "gray";
 
-                  const planLabel =
-                    p.region === "INT"
-                      ? "$10 / 30 days (International)"
-                      : "Rs1000 / 30 days (Pakistan)";
+                        const deviceShort =
+                          u.device_id && u.device_id.length > 16
+                            ? `${u.device_id.slice(0, 16)}…`
+                            : u.device_id || "-";
 
-                  const deviceShort =
-                    p.device_id && p.device_id.length > 18
-                      ? `${p.device_id.slice(0, 18)}…`
-                      : p.device_id || "-";
+                        const hasActive =
+                          u.sub_status === "approved" &&
+                          (u.daysRemaining == null || u.daysRemaining > 0);
 
-                  let statusHelper = "";
-                  if (p.status === "approved") {
-                    statusHelper = p.valid_until
-                      ? `Active until ${new Date(
-                          p.valid_until
-                        ).toLocaleDateString()}`
-                      : "Approved (no expiry set)";
-                  } else if (p.status === "pending") {
-                    statusHelper = "Waiting for manual review";
-                  } else if (p.status === "rejected") {
-                    statusHelper = "Rejected";
-                  } else if (p.status === "cancelled") {
-                    statusHelper = "Cancelled / expired";
-                  }
+                        const actionBtnBase = {
+                          borderRadius: 999,
+                          padding: "5px 10px",
+                          fontSize: 11,
+                          cursor: "pointer",
+                          border: "none"
+                        };
 
-                  return (
-                    <div
-                      key={p.id}
-                      style={{
-                        background: "#ffffff",
-                        borderRadius: 16,
-                        border: "1px solid #e5e7eb",
-                        padding: 16,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 18,
-                        boxShadow: "0 10px 25px rgba(15,23,42,0.04)"
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: 6 }}>
-                          <div style={{ fontWeight: 600 }}>{p.email}</div>
-                          <div
+                        return (
+                          <tr
+                            key={u.id}
                             style={{
-                              fontSize: 11,
-                              color: "#6b7280"
+                              borderBottom: "1px solid rgba(30,41,59,0.7)"
                             }}
                           >
-                            Region: {p.region || "-"} • {planLabel}
+                            <td style={{ padding: "8px 6px" }}>
+                              <div
+                                style={{
+                                  fontWeight: 600,
+                                  color: "#e5e7eb"
+                                }}
+                              >
+                                {u.name || u.email}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                {u.email}
+                              </div>
+                            </td>
+                            <td style={{ padding: "8px 6px" }}>
+                              {u.plan_code ? (
+                                <Badge tone="blue">{u.plan_code}</Badge>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: 12,
+                                    color: "#9ca3af"
+                                  }}
+                                >
+                                  No extension plan
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: "8px 6px" }}>
+                              {u.sub_status ? (
+                                <Badge tone={statusTone}>
+                                  {u.sub_status}
+                                </Badge>
+                              ) : (
+                                <Badge>No subscription</Badge>
+                              )}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px 6px",
+                                fontSize: 12,
+                                color: "#e5e7eb"
+                              }}
+                            >
+                              {u.daysRemaining != null
+                                ? `${u.daysRemaining} days`
+                                : "-"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px 6px",
+                                fontSize: 12,
+                                color: "#e5e7eb"
+                              }}
+                            >
+                              {deviceShort}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px 6px",
+                                fontSize: 12,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              {u.last_updated
+                                ? new Date(
+                                    u.last_updated
+                                  ).toLocaleString()
+                                : "-"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px 6px",
+                                fontSize: 12,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              {new Date(
+                                u.created_at
+                              ).toLocaleDateString()}
+                            </td>
+                            <td style={{ padding: "8px 6px" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: 6,
+                                  flexWrap: "wrap"
+                                }}
+                              >
+                                <button
+                                  style={{
+                                    ...actionBtnBase,
+                                    background: "rgba(129,140,248,0.2)",
+                                    color: "#e0e7ff"
+                                  }}
+                                  onClick={() =>
+                                    handleUserAction(u.id, "reset_device")
+                                  }
+                                >
+                                  Reset device
+                                </button>
+                                <button
+                                  disabled={!hasActive}
+                                  style={{
+                                    ...actionBtnBase,
+                                    background: "rgba(34,197,94,0.25)",
+                                    color: "#bbf7d0",
+                                    opacity: hasActive ? 1 : 0.4,
+                                    cursor: hasActive
+                                      ? "pointer"
+                                      : "not-allowed"
+                                  }}
+                                  onClick={() =>
+                                    hasActive &&
+                                    handleUserAction(u.id, "extend_30")
+                                  }
+                                >
+                                  Extend 30d
+                                </button>
+                                <button
+                                  disabled={!hasActive}
+                                  style={{
+                                    ...actionBtnBase,
+                                    background: "rgba(248,113,113,0.2)",
+                                    color: "#fecaca",
+                                    opacity: hasActive ? 1 : 0.4,
+                                    cursor: hasActive
+                                      ? "pointer"
+                                      : "not-allowed"
+                                  }}
+                                  onClick={() =>
+                                    hasActive &&
+                                    handleUserAction(
+                                      u.id,
+                                      "cancel_subscription"
+                                    )
+                                  }
+                                >
+                                  Cancel sub
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </section>
+            </>
+          )}
+
+          {activeTab === "payments" && (
+            <>
+              <header
+                style={{
+                  marginBottom: 16,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <div>
+                  <h1
+                    style={{
+                      fontSize: 24,
+                      margin: 0,
+                      color: headerTextColor
+                    }}
+                  >
+                    Extension Payment Requests
+                  </h1>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: subTextMuted,
+                      marginTop: 4
+                    }}
+                  >
+                    Review QR payments from the Chrome extension and approve or
+                    reject licenses.
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12
+                  }}
+                >
+                  <FilterTabs
+                    current={paymentFilter}
+                    setCurrent={setPaymentFilter}
+                  />
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      borderRadius: 999,
+                      border: "1px solid rgba(148,163,184,0.55)",
+                      padding: "7px 14px",
+                      background:
+                        "radial-gradient(circle at top left, rgba(129,140,248,0.18), transparent 55%), rgba(15,23,42,0.98)",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      color: "#e5e7eb",
+                      boxShadow:
+                        "0 14px 40px rgba(15,23,42,0.85)"
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </header>
+
+              <section
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  maxHeight: "calc(100vh - 170px)",
+                  overflowY: "auto"
+                }}
+              >
+                {filteredPayments.length === 0 ? (
+                  <div style={s.panel}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: subTextMuted
+                      }}
+                    >
+                      No extension payments in this filter.
+                    </div>
+                  </div>
+                ) : (
+                  filteredPayments.map((p) => {
+                    const tone =
+                      p.status === "approved"
+                        ? "green"
+                        : p.status === "rejected"
+                        ? "red"
+                        : p.status === "cancelled"
+                        ? "red"
+                        : "orange";
+
+                    const planLabel =
+                      p.region === "INT"
+                        ? "$10 / 30 days (International)"
+                        : "Rs1000 / 30 days (Pakistan)";
+
+                    const deviceShort =
+                      p.device_id && p.device_id.length > 18
+                        ? `${p.device_id.slice(0, 18)}…`
+                        : p.device_id || "-";
+
+                    let statusHelper = "";
+                    if (p.status === "approved") {
+                      statusHelper = p.valid_until
+                        ? `Active until ${new Date(
+                            p.valid_until
+                          ).toLocaleDateString()}`
+                        : "Approved (no expiry set)";
+                    } else if (p.status === "pending") {
+                      statusHelper = "Waiting for manual review";
+                    } else if (p.status === "rejected") {
+                      statusHelper = "Rejected";
+                    } else if (p.status === "cancelled") {
+                      statusHelper = "Cancelled / expired";
+                    }
+
+                    return (
+                      <div
+                        key={p.id}
+                        style={{
+                          background:
+                            "radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%), rgba(15,23,42,0.98)",
+                          borderRadius: 20,
+                          border:
+                            "1px solid rgba(148,163,184,0.6)",
+                          padding: 16,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: 18,
+                          boxShadow:
+                            "0 24px 80px rgba(15,23,42,0.95)"
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ marginBottom: 6 }}>
+                            <div
+                              style={{
+                                fontWeight: 600,
+                                color: "#e5e7eb"
+                              }}
+                            >
+                              {p.email}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#9ca3af"
+                              }}
+                            >
+                              Region: {p.region || "-"} • {planLabel}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(2,minmax(0,1fr))",
+                              columnGap: 24,
+                              rowGap: 4,
+                              fontSize: 12,
+                              color: "#e5e7eb"
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                Transaction ID
+                              </div>
+                              <div style={{ fontFamily: "monospace" }}>
+                                {p.tx_id}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                Created at
+                              </div>
+                              <div>
+                                {new Date(
+                                  p.created_at
+                                ).toLocaleString()}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                Device ID
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: "monospace"
+                                }}
+                              >
+                                {deviceShort}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: "#9ca3af"
+                                }}
+                              >
+                                License status
+                              </div>
+                              <div>{statusHelper}</div>
+                            </div>
                           </div>
                         </div>
 
                         <div
                           style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                              "repeat(2,minmax(0,1fr))",
-                            columnGap: 24,
-                            rowGap: 4,
-                            fontSize: 12,
-                            color: "#4b5563"
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: 8,
+                            minWidth: 160
                           }}
                         >
-                          <div>
+                          <Badge tone={tone}>{p.status}</Badge>
+
+                          {p.status === "pending" && (
                             <div
                               style={{
-                                fontSize: 11,
-                                color: "#9ca3af"
+                                display: "flex",
+                                gap: 6,
+                                marginTop: 4
                               }}
                             >
-                              Transaction ID
+                              <button
+                                onClick={() =>
+                                  handlePaymentAction(p.id, "approve_30")
+                                }
+                                style={{
+                                  borderRadius: 999,
+                                  border: "none",
+                                  padding: "6px 14px",
+                                  background:
+                                    "linear-gradient(135deg,#22c55e,#4ade80)",
+                                  color: "#022c22",
+                                  cursor: "pointer",
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  boxShadow:
+                                    "0 14px 40px rgba(34,197,94,0.7)"
+                                }}
+                              >
+                                Approve 30d
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handlePaymentAction(p.id, "reject")
+                                }
+                                style={{
+                                  borderRadius: 999,
+                                  border:
+                                    "1px solid rgba(248,113,113,0.7)",
+                                  padding: "6px 14px",
+                                  background: "transparent",
+                                  color: "#fecaca",
+                                  cursor: "pointer",
+                                  fontSize: 12,
+                                  fontWeight: 500
+                                }}
+                              >
+                                Reject
+                              </button>
                             </div>
-                            <div style={{ fontFamily: "monospace" }}>
-                              {p.tx_id}
-                            </div>
-                          </div>
-                          <div>
-                            <div
+                          )}
+
+                          {p.status === "approved" && (
+                            <button
+                              onClick={() =>
+                                handlePaymentAction(p.id, "cancel")
+                              }
                               style={{
-                                fontSize: 11,
-                                color: "#9ca3af"
+                                borderRadius: 999,
+                                border:
+                                  "1px solid rgba(248,113,113,0.7)",
+                                padding: "6px 14px",
+                                background: "rgba(248,113,113,0.12)",
+                                color: "#fed7aa",
+                                cursor: "pointer",
+                                fontSize: 12,
+                                fontWeight: 500,
+                                marginTop: 4
                               }}
                             >
-                              Created at
-                            </div>
-                            <div>
-                              {new Date(
-                                p.created_at
-                              ).toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "#9ca3af"
-                              }}
-                            >
-                              Device ID
-                            </div>
-                            <div style={{ fontFamily: "monospace" }}>
-                              {deviceShort}
-                            </div>
-                          </div>
-                          <div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "#9ca3af"
-                              }}
-                            >
-                              License status
-                            </div>
-                            <div>{statusHelper}</div>
-                          </div>
+                              Cancel license
+                            </button>
+                          )}
                         </div>
                       </div>
+                    );
+                  })
+                )}
+              </section>
+            </>
+          )}
 
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: 8,
-                          minWidth: 160
-                        }}
-                      >
-                        <Badge tone={tone}>{p.status}</Badge>
-
-                        {p.status === "pending" && (
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 6,
-                              marginTop: 4
-                            }}
-                          >
-                            <button
-                              onClick={() =>
-                                handlePaymentAction(p.id, "approve_30")
-                              }
-                              style={{
-                                borderRadius: 999,
-                                border: "none",
-                                padding: "6px 14px",
-                                background:
-                                  "linear-gradient(90deg,#22c55e,#4ade80)",
-                                color: "#022c22",
-                                cursor: "pointer",
-                                fontSize: 12,
-                                fontWeight: 600
-                              }}
-                            >
-                              Approve 30d
-                            </button>
-                            <button
-                              onClick={() =>
-                                handlePaymentAction(p.id, "reject")
-                              }
-                              style={{
-                                borderRadius: 999,
-                                border: "1px solid #fecaca",
-                                padding: "6px 14px",
-                                background: "#ffffff",
-                                color: "#b91c1c",
-                                cursor: "pointer",
-                                fontSize: 12,
-                                fontWeight: 500
-                              }}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        )}
-
-                        {p.status === "approved" && (
-                          <button
-                            onClick={() =>
-                              handlePaymentAction(p.id, "cancel")
-                            }
-                            style={{
-                              borderRadius: 999,
-                              border: "1px solid #fecaca",
-                              padding: "6px 14px",
-                              background: "#fff7ed",
-                              color: "#b45309",
-                              cursor: "pointer",
-                              fontSize: 12,
-                              fontWeight: 500,
-                              marginTop: 4
-                            }}
-                          >
-                            Cancel license
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </section>
-          </>
-        )}
-
-        {activeTab === "settings" && (
-          <>
-            <header style={{ marginBottom: 16 }}>
-              <h1
-                style={{
-                  fontSize: 24,
-                  margin: 0,
-                  color: "#111827"
-                }}
-              >
-                Settings
-              </h1>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  marginTop: 4
-                }}
-              >
-                Internal configuration for your billing backend and
-                extension API.
-              </p>
-            </header>
-
-            <section
-              style={{
-                background: "#ffffff",
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
-                padding: 16
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 16,
-                  margin: "0 0 8px"
-                }}
-              >
-                Environment
-              </h2>
-              <ul
-                style={{
-                  fontSize: 13,
-                  color: "#4b5563",
-                  paddingLeft: 18
-                }}
-              >
-                <li>
-                  <b>Admin email:</b> {sessionEmail}
-                </li>
-                <li>
-                  <b>Neon database:</b> configured via{" "}
-                  <code>DATABASE_URL</code>
-                </li>
-                <li>
-                  <b>Google OAuth:</b> using{" "}
-                  <code>GOOGLE_CLIENT_ID</code> /
-                  <code> GOOGLE_CLIENT_SECRET</code>
-                </li>
-                <li>
-                  <b>Extension token env:</b>{" "}
-                  <code>EXTENSION_API_TOKEN</code>
-                </li>
-              </ul>
-              <p
-                style={{
-                  fontSize: 12,
-                  color: "#9ca3af",
-                  marginTop: 8
-                }}
-              >
-                For any changes to environment variables, update them in
-                Vercel and redeploy.
-              </p>
-
-              <div
-                style={{
-                  marginTop: 16,
-                  paddingTop: 14,
-                  borderTop: "1px solid #e5e7eb"
-                }}
-              >
-                <h2
+          {activeTab === "settings" && (
+            <>
+              <header style={{ marginBottom: 16 }}>
+                <h1
                   style={{
-                    fontSize: 16,
-                    margin: "0 0 6px"
+                    fontSize: 24,
+                    margin: 0,
+                    color: headerTextColor
                   }}
                 >
-                  Extension API token helper
-                </h2>
+                  Settings
+                </h1>
                 <p
                   style={{
                     fontSize: 13,
-                    color: "#4b5563",
-                    marginBottom: 8
+                    color: subTextMuted,
+                    marginTop: 4
                   }}
                 >
-                  This shows a masked preview of the token used by the
-                  extension and lets you generate new random tokens which
-                  you can copy into Vercel and your Chrome extension
-                  config.
+                  Internal configuration for your billing backend and
+                  extension API.
+                </p>
+              </header>
+
+              <section style={s.panel}>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    margin: "0 0 8px",
+                    color: "#e5e7eb"
+                  }}
+                >
+                  Environment
+                </h2>
+                <ul
+                  style={{
+                    fontSize: 13,
+                    color: "#e5e7eb",
+                    paddingLeft: 18
+                  }}
+                >
+                  <li>
+                    <b>Admin email:</b> {sessionEmail}
+                  </li>
+                  <li>
+                    <b>Neon database:</b> configured via{" "}
+                    <code>DATABASE_URL</code>
+                  </li>
+                  <li>
+                    <b>Google OAuth:</b> using{" "}
+                    <code>GOOGLE_CLIENT_ID</code> /
+                    <code> GOOGLE_CLIENT_SECRET</code>
+                  </li>
+                  <li>
+                    <b>Extension token env:</b>{" "}
+                    <code>EXTENSION_API_TOKEN</code>
+                  </li>
+                </ul>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#9ca3af",
+                    marginTop: 8
+                  }}
+                >
+                  For any changes to environment variables, update them in
+                  Vercel and redeploy.
                 </p>
 
                 <div
                   style={{
-                    fontSize: 13,
-                    marginBottom: 8
+                    marginTop: 16,
+                    paddingTop: 14,
+                    borderTop: "1px solid rgba(148,163,184,0.5)"
                   }}
                 >
-                  <b>Current token (preview):</b>{" "}
-                  <span
+                  <h2
                     style={{
-                      fontFamily: "monospace",
-                      color: "#111827"
+                      fontSize: 16,
+                      margin: "0 0 6px",
+                      color: "#e5e7eb"
                     }}
                   >
-                    {extTokenPreview || "Not set"}
-                  </span>
-                </div>
+                    Extension API token helper
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "#e5e7eb",
+                      marginBottom: 8
+                    }}
+                  >
+                    This shows a masked preview of the token used by the
+                    extension and lets you generate new random tokens which
+                    you can copy into Vercel and your Chrome extension
+                    config.
+                  </p>
 
-                <button
-                  type="button"
-                  onClick={generateNewToken}
-                  style={{
-                    borderRadius: 999,
-                    border: "1px solid #e5e7eb",
-                    padding: "7px 14px",
-                    background:
-                      "linear-gradient(90deg,#6366f1,#8b5cf6)",
-                    color: "#f9fafb",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    boxShadow: "0 10px 25px rgba(79,70,229,0.25)"
-                  }}
-                >
-                  Generate new random token
-                </button>
-
-                {generatedToken && (
                   <div
                     style={{
-                      marginTop: 10,
-                      fontSize: 12,
-                      background: "#f3f4f6",
-                      borderRadius: 8,
-                      padding: 10,
-                      border: "1px solid #e5e7eb"
+                      fontSize: 13,
+                      marginBottom: 8,
+                      color: "#e5e7eb"
                     }}
                   >
-                    <div
-                      style={{
-                        marginBottom: 4,
-                        color: "#4b5563"
-                      }}
-                    >
-                      Copy this value to{" "}
-                      <code>EXTENSION_API_TOKEN</code> in Vercel and to
-                      your Chrome extension build:
-                    </div>
-                    <div
+                    <b>Current token (preview):</b>{" "}
+                    <span
                       style={{
                         fontFamily: "monospace",
-                        wordBreak: "break-all",
-                        color: "#111827"
+                        color: "#f9fafb"
                       }}
                     >
-                      {generatedToken}
-                    </div>
+                      {extTokenPreview || "Not set"}
+                    </span>
                   </div>
-                )}
-              </div>
-            </section>
-          </>
-        )}
-      </main>
+
+                  <button
+                    type="button"
+                    onClick={generateNewToken}
+                    style={{
+                      borderRadius: 999,
+                      border: "1px solid rgba(129,140,248,0.8)",
+                      padding: "7px 14px",
+                      background:
+                        "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                      color: "#f9fafb",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      boxShadow:
+                        "0 16px 50px rgba(79,70,229,0.7)"
+                    }}
+                  >
+                    Generate new random token
+                  </button>
+
+                  {generatedToken && (
+                    <div
+                      style={{
+                        marginTop: 10,
+                        fontSize: 12,
+                        background: "rgba(15,23,42,0.96)",
+                        borderRadius: 10,
+                        padding: 10,
+                        border:
+                          "1px solid rgba(148,163,184,0.6)"
+                      }}
+                    >
+                      <div
+                        style={{
+                          marginBottom: 4,
+                          color: "#e5e7eb"
+                        }}
+                      >
+                        Copy this value to{" "}
+                        <code>EXTENSION_API_TOKEN</code> in Vercel and to
+                        your Chrome extension build:
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "monospace",
+                          wordBreak: "break-all",
+                          color: "#f9fafb"
+                        }}
+                      >
+                        {generatedToken}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
