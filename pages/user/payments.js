@@ -1,3 +1,5 @@
+// pages/user/payments.js
+
 import React, { useState, useEffect } from "react";
 
 // --- Icons (Clean & Sharp) ---
@@ -127,43 +129,83 @@ const Icons = {
 export default function UserPaymentsPage() {
   const [region, setRegion] = useState("PK");
 
-  // Payment logic (same behaviour as before)
-  const [paymentStatus, setPaymentStatus] = useState("checking"); // checking | none | pending | active | rejected
+  // Payment logic
+  // checking | none | pending | active | rejected
+  const [paymentStatus, setPaymentStatus] = useState("checking");
   const [existingTxId, setExistingTxId] = useState("");
   const [txIdInput, setTxIdInput] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
 
-  // For responsive grid without breaking SSR
+  // Responsive grid
   const [isNarrow, setIsNarrow] = useState(false);
 
   const isPK = region === "PK";
   const qrUrl = isPK ? "/qr/pk_1000.png" : "/qr/intl_10usd.png";
   const amountText = isPK ? "Rs1000 / 30 days" : "$10 / 30 days";
 
+  // Form should be visible but read-only for pending/active
   const isFormReadOnly =
     paymentStatus === "pending" || paymentStatus === "active";
 
   // Load current payment / subscription status
   useEffect(() => {
     let cancelled = false;
+
     async function fetchStatus() {
       try {
         setPaymentStatus("checking");
         setSubmitError("");
-        const res = await fetch("/api/user/payments/status");
+        const res = await fetch("/api/user/payments/status", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
         if (!res.ok) throw new Error("Unable to read payment status.");
         const data = await res.json();
+
         if (cancelled) return;
-        setPaymentStatus(data.status || "none");
-        setExistingTxId(data.transactionId || "");
+
+        // Try to normalize status from various possible keys
+        const rawStatus =
+          data.status ||
+          data.subscriptionStatus ||
+          data.subscription_status ||
+          data.subscription?.status ||
+          (data.active ? "active" : undefined) ||
+          (data.pending ? "pending" : undefined) ||
+          "none";
+
+        const normalizedStatus = String(rawStatus).toLowerCase();
+
+        let mappedStatus: "active" | "pending" | "rejected" | "none" =
+          "none";
+        if (normalizedStatus.includes("active")) mappedStatus = "active";
+        else if (normalizedStatus.includes("pending"))
+          mappedStatus = "pending";
+        else if (normalizedStatus.includes("reject"))
+          mappedStatus = "rejected";
+        else mappedStatus = "none";
+
+        // Try to read a transaction id from multiple possible fields
+        const tx =
+          data.transactionId ||
+          data.txId ||
+          data.latestTransactionId ||
+          data.lastTransactionId ||
+          data.paymentTxId ||
+          data.lastPayment?.transactionId ||
+          "";
+
+        setPaymentStatus(mappedStatus);
+        setExistingTxId(tx || "");
       } catch (err) {
         if (cancelled) return;
         setPaymentStatus("none");
         setExistingTxId("");
       }
     }
+
     fetchStatus();
     return () => {
       cancelled = true;
@@ -228,7 +270,7 @@ export default function UserPaymentsPage() {
   const s = {
     page: {
       minHeight: "100vh",
-      background: "#0f0c29", // Deep dark base
+      background: "#0f0c29",
       fontFamily: "'Inter', system-ui, sans-serif",
       position: "relative",
       overflow: "hidden",
@@ -245,7 +287,7 @@ export default function UserPaymentsPage() {
       width: "60vw",
       height: "60vw",
       background:
-        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)", // Hot Pink
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -257,7 +299,7 @@ export default function UserPaymentsPage() {
       width: "50vw",
       height: "50vw",
       background:
-        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)", // Vibrant Orange
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -269,7 +311,7 @@ export default function UserPaymentsPage() {
       width: "40vw",
       height: "40vw",
       background:
-        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)", // Purple
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(90px)",
       opacity: 0.4,
       zIndex: 0,
@@ -503,13 +545,14 @@ export default function UserPaymentsPage() {
       ? "Checking Status"
       : "No Active Plan";
 
-  const buttonLabel = submitLoading
-    ? "Verifying..."
-    : paymentStatus === "active"
-    ? "Payment Approved"
-    : paymentStatus === "pending"
-    ? "Waiting for Approval"
-    : "Unlock Now";
+  const buttonLabel =
+    submitLoading
+      ? "Verifying..."
+      : paymentStatus === "active"
+      ? "Payment Approved"
+      : paymentStatus === "pending"
+      ? "Waiting for Approval"
+      : "Unlock Now";
 
   return (
     <div style={s.page}>
@@ -589,7 +632,8 @@ export default function UserPaymentsPage() {
                 <li style={s.stepItem}>
                   <div style={s.stepNum}>2</div>
                   <div style={s.stepText}>
-                    Send exactly <strong>{amountText}</strong> for your plan.
+                    {/* TEXT CHANGED AS REQUESTED */}
+                    Send exactly <strong>{amountText}</strong>.
                   </div>
                 </li>
                 <li style={s.stepItem}>
@@ -610,7 +654,7 @@ export default function UserPaymentsPage() {
               </ul>
             </div>
 
-            {/* Transaction Form */}
+            {/* Transaction Form (always visible; disabled when active/pending) */}
             <div style={s.glassPanel}>
               <div style={s.sectionTitle}>Verify Payment</div>
               <form onSubmit={handleSubmitTransaction}>
@@ -669,7 +713,11 @@ export default function UserPaymentsPage() {
                   </div>
                 )}
 
-                <button style={s.btn} type="submit" disabled={submitLoading || isFormReadOnly}>
+                <button
+                  style={s.btn}
+                  type="submit"
+                  disabled={submitLoading || isFormReadOnly}
+                >
                   {buttonLabel}
                 </button>
               </form>
