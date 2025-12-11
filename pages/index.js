@@ -1,45 +1,92 @@
-// pages/index.js
-
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 
+// --- Icons (Clean & Sharp) ---
+const Icons = {
+  Check: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  ),
+  Shield: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  ),
+  Zap: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+    </svg>
+  ),
+  Info: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+  ),
+  Users: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+  ),
+  ArrowRight: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  ),
+  External: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <line x1="10" y1="14" x2="21" y2="3"></line>
+    </svg>
+  )
+};
+
 export default function HomePage() {
+  // For responsive grid without breaking SSR
   const [isNarrow, setIsNarrow] = useState(false);
 
+  // Responsive: detect width on client only
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleResize = () => {
-      setIsNarrow(window.innerWidth < 800);
+      setIsNarrow(window.innerWidth < 850);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // ----------------------------------------------------------------
+  // VIBRANT GLASS STYLES
+  // ----------------------------------------------------------------
   const s = {
     page: {
       minHeight: "100vh",
-      margin: 0,
-      padding: "80px 20px",
       background: "#0f0c29",
-      color: "#e5e7eb",
-      fontFamily:
-        "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       position: "relative",
-      overflow: "hidden",
+      overflowX: "hidden",
       display: "flex",
       justifyContent: "center",
+      padding: "80px 20px",
     },
-    // Background blobs (same vibe as payments page)
+
+    // Background blobs
     blob1: {
       position: "absolute",
       top: "-15%",
       left: "-10%",
       width: "60vw",
       height: "60vw",
-      background:
-        "radial-gradient(circle, #6366f1 0%, rgba(0,0,0,0) 70%)",
+      background: "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -50,8 +97,7 @@ export default function HomePage() {
       right: "-10%",
       width: "50vw",
       height: "50vw",
-      background:
-        "radial-gradient(circle, #ec4899 0%, rgba(0,0,0,0) 70%)",
+      background: "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(80px)",
       opacity: 0.5,
       zIndex: 0,
@@ -59,173 +105,208 @@ export default function HomePage() {
     blob3: {
       position: "absolute",
       top: "40%",
-      left: "25%",
+      left: "30%",
       width: "40vw",
       height: "40vw",
-      background:
-        "radial-gradient(circle, #0ea5e9 0%, rgba(0,0,0,0) 70%)",
+      background: "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)",
       filter: "blur(90px)",
       opacity: 0.4,
       zIndex: 0,
     },
-    wrapper: {
-      maxWidth: "900px",
+
+    container: {
       width: "100%",
-      margin: "0 auto",
+      maxWidth: "1100px",
       position: "relative",
       zIndex: 10,
+      display: "flex",
+      flexDirection: "column",
+      gap: "30px",
     },
+
+    // Header
     header: {
-      marginBottom: "24px",
-      textAlign: "left",
+      textAlign: "center",
+      marginBottom: "20px",
     },
-    tag: {
-      fontSize: "11px",
+    headerTag: {
+      fontSize: "12px",
       letterSpacing: "0.25em",
       textTransform: "uppercase",
-      color: "#c4b5fd",
-      marginBottom: "6px",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px",
-      padding: "4px 10px",
-      borderRadius: "999px",
-      background: "rgba(15,23,42,0.7)",
-      border: "1px solid rgba(129,140,248,0.5)",
+      color: "rgba(255,255,255,0.6)",
+      marginBottom: "12px",
+      fontWeight: 600,
     },
-    title: {
-      fontSize: "32px",
-      fontWeight: 800,
-      margin: "10px 0 4px 0",
-      color: "#f9fafb",
-      letterSpacing: "-0.03em",
-      textShadow: "0 4px 20px rgba(0,0,0,0.4)",
+    h1: {
+      fontSize: "48px",
+      fontWeight: "800",
+      letterSpacing: "-1.5px",
+      color: "#fff",
+      margin: "0 0 16px 0",
+      textShadow: "0 4px 20px rgba(0,0,0,0.3)",
+      lineHeight: 1.1,
     },
     subtitle: {
-      marginTop: "4px",
-      fontSize: "14px",
-      color: "rgba(226,232,240,0.8)",
-      maxWidth: "640px",
+      fontSize: "18px",
+      color: "rgba(255,255,255,0.7)",
+      fontWeight: "400",
+      maxWidth: "600px",
+      margin: "0 auto",
       lineHeight: 1.6,
     },
     highlight: {
-      color: "#f9fafb",
+      color: "#fff",
       fontWeight: 600,
+      position: "relative",
+      display: "inline-block",
     },
 
-    // Main glass card
-    mainCard: {
+    // Grid
+    grid: {
+      display: isNarrow ? "flex" : "grid",
+      flexDirection: isNarrow ? "column" : undefined,
+      gridTemplateColumns: isNarrow ? undefined : "repeat(12, 1fr)",
+      gap: "24px",
+    },
+
+    // Glass card
+    glassPanel: {
+      background: "rgba(255, 255, 255, 0.03)",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)",
       borderRadius: "30px",
-      background: "rgba(15,23,42,0.85)",
-      backdropFilter: "blur(30px)",
-      WebkitBackdropFilter: "blur(30px)",
-      border: "1px solid rgba(148,163,184,0.5)",
-      borderTop: "1px solid rgba(248,250,252,0.2)",
-      borderLeft: "1px solid rgba(248,250,252,0.15)",
-      boxShadow: "0 26px 80px rgba(15,23,42,0.95)",
-      padding: "28px 26px",
+      border: "1px solid rgba(255, 255, 255, 0.15)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.3)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.3)",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      padding: "40px",
+      color: "#fff",
+      overflow: "hidden",
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
     },
+
+    leftCol: {
+      gridColumn: isNarrow ? undefined : "span 7",
+    },
+    rightCol: {
+      gridColumn: isNarrow ? undefined : "span 5",
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
+    },
+
     sectionTitle: {
+      fontSize: "20px",
+      fontWeight: "700",
+      marginBottom: "16px",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    },
+    text: {
       fontSize: "15px",
-      fontWeight: 700,
-      marginBottom: "6px",
-      color: "#e5e7eb",
+      lineHeight: "1.7",
+      color: "rgba(255,255,255,0.7)",
+      marginBottom: "20px",
+    },
+
+    // Lists
+    stepList: { listStyle: "none", padding: 0, margin: "0 0 30px 0" },
+    stepItem: {
+      display: "flex",
+      gap: "15px",
+      marginBottom: "16px",
+      alignItems: "flex-start",
+    },
+    stepIcon: {
+      background: "rgba(255,255,255,0.1)",
+      width: "24px",
+      height: "24px",
+      borderRadius: "50%",
       display: "flex",
       alignItems: "center",
-      gap: "8px",
-    },
-    sectionText: {
-      fontSize: "13px",
-      lineHeight: 1.7,
-      color: "#9ca3af",
-    },
-    list: {
-      marginTop: "8px",
-      paddingLeft: "20px",
-      fontSize: "13px",
-      color: "#9ca3af",
-      lineHeight: 1.7,
+      justifyContent: "center",
+      color: "#fff",
+      flexShrink: 0,
+      marginTop: "2px",
     },
 
-    // Columns (glass inside glass)
-    columns: {
+    // Buttons
+    btnRow: {
       display: "flex",
-      flexDirection: isNarrow ? "column" : "row",
-      gap: "18px",
-      marginTop: "20px",
+      flexWrap: "wrap",
+      gap: "16px",
+      marginTop: "auto",
     },
-    column: {
-      flex: "1 1 0",
-      borderRadius: "20px",
-      border: "1px solid rgba(55,65,81,0.9)",
-      background:
-        "radial-gradient(circle at top left, rgba(129,140,248,0.12), transparent 55%), rgba(15,23,42,0.96)",
-      padding: "16px 18px",
-      fontSize: "13px",
-      boxShadow: "0 18px 45px rgba(15,23,42,0.8)",
-    },
-    columnTitle: {
-      fontSize: "14px",
-      fontWeight: 600,
-      marginBottom: "6px",
-      color: "#f9fafb",
-    },
-    columnText: {
-      fontSize: "13px",
-      lineHeight: 1.7,
-      color: "#9ca3af",
-    },
-
-    badge: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "6px",
-      borderRadius: "999px",
-      border: "1px solid rgba(148,163,184,0.7)",
-      padding: "5px 11px",
-      fontSize: "11px",
-      color: "#cbd5f5",
-      background: "rgba(15,23,42,0.95)",
-      marginTop: "10px",
-    },
-    badgeDot: {
-      width: "7px",
-      height: "7px",
-      borderRadius: "999px",
-      backgroundColor: "#22c55e",
-      boxShadow: "0 0 0 4px rgba(34,197,94,0.25)",
-    },
-
-    // CTA button (link)
-    linkButton: {
+    primaryBtn: {
+      flex: 1,
+      minWidth: "200px",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      marginTop: "16px",
-      borderRadius: "999px",
-      border: "0",
-      padding: "10px 20px",
-      fontSize: "13px",
-      fontWeight: 600,
+      padding: "16px 24px",
+      borderRadius: "16px",
+      border: "none",
+      background: "linear-gradient(135deg, #ff0f7b 0%, #f89b29 100%)",
+      color: "#fff",
+      fontSize: "15px",
+      fontWeight: "700",
       cursor: "pointer",
-      background: "linear-gradient(135deg,#6366f1,#ec4899)",
-      color: "#ffffff",
-      boxShadow: "0 18px 45px rgba(99,102,241,0.65)",
+      boxShadow: "0 10px 40px -10px rgba(255, 15, 123, 0.5)",
       textDecoration: "none",
+      transition: "transform 0.2s ease, box-shadow 0.2s ease",
       gap: "8px",
-      letterSpacing: "0.01em",
+    },
+    secondaryBtn: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "16px 24px",
+      borderRadius: "16px",
+      border: "1px solid rgba(255,255,255,0.2)",
+      background: "rgba(255,255,255,0.05)",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: "600",
+      cursor: "pointer",
+      textDecoration: "none",
+      transition: "background 0.2s ease",
     },
 
-    footnote: {
-      marginTop: "18px",
-      fontSize: "11px",
-      color: "#9ca3af",
-      lineHeight: 1.6,
+    // Footer Links
+    tinyLinkRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "16px",
+      marginTop: "30px",
+      paddingTop: "20px",
+      borderTop: "1px solid rgba(255,255,255,0.1)",
     },
-    mono: {
-      fontFamily: "monospace",
-      color: "#e5e7eb",
-      fontSize: "11px",
+    tinyLink: {
+      fontSize: "12px",
+      color: "rgba(255,255,255,0.4)",
+      textDecoration: "none",
+      transition: "color 0.2s",
+    },
+
+    // Status pill
+    statusPill: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "6px 14px",
+      borderRadius: "100px",
+      fontSize: "12px",
+      fontWeight: "600",
+      background: "rgba(34, 197, 94, 0.15)",
+      border: "1px solid rgba(34, 197, 94, 0.3)",
+      color: "#86efac",
+      backdropFilter: "blur(10px)",
+      margin: "0 auto",
+      marginBottom: "20px",
     },
   };
 
@@ -236,117 +317,95 @@ export default function HomePage() {
       </Head>
 
       <div style={s.page}>
-        {/* Background blobs */}
+        {/* Background Blobs */}
         <div style={s.blob1} />
         <div style={s.blob2} />
         <div style={s.blob3} />
 
-        <div style={s.wrapper}>
+        <div style={s.container}>
           {/* Header */}
           <header style={s.header}>
-            <div style={s.tag}>
-              <span>Runway Prompt Studio</span>
+            <div style={s.headerTag}>Runway Prompt Studio</div>
+            <div style={s.statusPill}>
+              <Icons.Check /> Signed in with Google
             </div>
-            <h1 style={s.title}>Backend & account portal</h1>
+            
+            <h1 style={s.h1}>Chrome Extension Portal</h1>
             <p style={s.subtitle}>
-              This site is used only for{" "}
-              <span style={s.highlight}>
-                Chrome extension subscriptions and manual payment review
-              </span>
-              . It is not needed for normal RunwayML usage.
+              Link your device and manage your{" "}
+              <span style={s.highlight}>automation license</span> from here.
             </p>
           </header>
 
-          {/* Main glass card */}
-          <main style={s.mainCard}>
-            <div style={s.sectionTitle}>
-              <span>How this backend is used</span>
-            </div>
-            <p style={s.sectionText}>
-              If you installed the <strong>Runway Prompt Studio</strong> Chrome
-              extension, you only need this backend for:
-            </p>
-            <ul style={s.list}>
-              <li>logging in once with Google (same account as the extension)</li>
-              <li>viewing QR codes and payment instructions</li>
-              <li>
-                admins reviewing transactions, managing subscriptions, and
-                credits
-              </li>
-            </ul>
+          <div style={s.grid}>
+            {/* Left Column: Main Info & Actions */}
+            <div style={{ ...s.glassPanel, ...s.leftCol }}>
+              <div style={s.sectionTitle}>
+                <Icons.Zap /> How this backend is used
+              </div>
+              
+              <p style={s.text}>
+                If you installed the <strong>Runway Prompt Studio</strong> Chrome extension,
+                this site is your control center. You don't need to stay here; just use it for:
+              </p>
 
-            <div style={s.columns}>
-              {/* Column 1: Extension users */}
-              <section style={s.column}>
-                <div style={s.columnTitle}>For Chrome extension users</div>
-                <p style={s.columnText}>
-                  You do not manage anything manually on this page. Simply:
-                </p>
-                <ol
-                  style={{
-                    marginTop: "6px",
-                    paddingLeft: "20px",
-                    fontSize: "13px",
-                    color: "#9ca3af",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  <li>
-                    Login with Google when the extension or this site asks you.
-                  </li>
-                  <li>
-                    Scan the QR code and send payment from your bank / wallet.
-                  </li>
-                  <li>
-                    Paste the transaction ID{" "}
-                    <strong>inside the extension floating panel</strong> on{" "}
-                    <span style={s.mono}>app.runwayml.com</span>.
-                  </li>
-                </ol>
+              <ul style={s.stepList}>
+                <li style={s.stepItem}>
+                  <div style={s.stepIcon}><Icons.Check /></div>
+                  <div style={{...s.text, marginBottom: 0}}>Signing in securely with your Google account</div>
+                </li>
+                <li style={s.stepItem}>
+                  <div style={s.stepIcon}><Icons.Check /></div>
+                  <div style={{...s.text, marginBottom: 0}}>Viewing QR codes and payment instructions</div>
+                </li>
+                <li style={s.stepItem}>
+                  <div style={s.stepIcon}><Icons.Check /></div>
+                  <div style={{...s.text, marginBottom: 0}}>Linking your device and reviewing subscription status</div>
+                </li>
+              </ul>
 
-                <Link href="/user/payments" style={s.linkButton}>
-                  <span>Open subscription payment instructions</span>
-                  <span
-                    style={{
-                      display: "inline-block",
-                      transform: "translateY(1px)",
-                    }}
-                  >
-                    →
-                  </span>
+              <div style={s.btnRow}>
+                <Link href="/user/payments" style={s.primaryBtn}>
+                  Open Payment / Subscription Page <Icons.ArrowRight />
                 </Link>
-              </section>
 
-              {/* Column 2: Admins */}
-              <section style={s.column}>
-                <div style={s.columnTitle}>For admins & staff</div>
-                <p style={s.columnText}>
-                  Admin tools (user list, payments, subscription control, device
-                  reset, API tokens) are available on a{" "}
-                  <strong>separate admin panel</strong>.
-                </p>
-                <p style={{ ...s.columnText, marginTop: "8px" }}>
-                  Use your private admin URL:
-                  <br />
-                  <span style={s.mono}>
-                    https://runway-automation-pro.vercel.app/admin
-                  </span>
-                </p>
+                <Link href="/about" style={s.secondaryBtn}>
+                  About Project
+                </Link>
+              </div>
 
-                <div style={s.badge}>
-                  <span style={s.badgeDot} />
-                  <span>Access restricted to authorized accounts</span>
-                </div>
-              </section>
+              <div style={s.tinyLinkRow}>
+                <Link href="/legal/privacy" style={s.tinyLink}>
+                  Privacy Policy
+                </Link>
+                <Link href="/legal/terms" style={s.tinyLink}>
+                  Terms &amp; License
+                </Link>
+                <span style={s.tinyLink}>
+                  Independent from RunwayML.
+                </span>
+              </div>
             </div>
 
-            <p style={s.footnote}>
-              Note: This backend is independent from RunwayML itself. It only
-              controls access to the{" "}
-              <strong>Runway Prompt Studio Chrome extension</strong> and its
-              automation features.
-            </p>
-          </main>
+            {/* Right Column: Side Info Cards */}
+            <div style={s.rightCol}>
+              
+              {/* Card 1: Users */}
+              <div style={s.glassPanel}>
+                <div style={s.sectionTitle}>
+                  <Icons.Users /> For extension users
+                </div>
+                <div style={{...s.text, fontSize: '14px', marginBottom: 0}}>
+                  1. Log in with the same Google account you use inside <code>app.runwayml.com</code>.
+                  <br /><br />
+                  2. Complete a QR payment once.
+                  <br /><br />
+                  3. Enter the transaction ID inside the <strong>floating panel</strong> on Runway.
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
     </>
