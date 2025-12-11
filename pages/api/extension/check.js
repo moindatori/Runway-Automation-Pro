@@ -42,7 +42,6 @@ async function ensureUser(email, name) {
   }
 
   // If email is UNIQUE, this ON CONFLICT is safe.
-  // If not, you can drop ON CONFLICT and just keep a single INSERT.
   const inserted = await sql`
     INSERT INTO users (email, name)
     VALUES (${email}, ${name || null})
@@ -58,7 +57,7 @@ async function ensureUser(email, name) {
  * Strict device lock:
  * - Only ONE active device per user_id.
  * - A device_id CANNOT be active for two different users at the same time.
- * - Old locks (>72h) for that user are auto-released so user can move to a new device.
+ * - Old locks (>24h) for that user are auto-released so user can move to a new device.
  */
 async function enforceDeviceLock(userId, deviceId) {
   if (!sql || !userId || !deviceId) {
@@ -107,13 +106,13 @@ async function enforceDeviceLock(userId, deviceId) {
       return { ok: true, reason: "same_device" };
     }
 
-    // 2) Auto-expire any active lock for this user older than 72 hours
+    // 2) Auto-expire any active lock for this user older than 24 hours
     const released = await sql`
       UPDATE device_locks
       SET is_active = false
       WHERE user_id = ${userId}
         AND is_active = true
-        AND created_at < (now() - interval '72 hours')
+        AND created_at < (now() - interval '24 hours')
       RETURNING id;
     `;
 
@@ -269,16 +268,19 @@ export default async function handler(req, res) {
     if (row.valid_until) {
       const untilMs = Date.parse(row.valid_until);
       const diffMs = untilMs - nowMs;
-      daysRemaining = Math.max(
-        0,
-        Math.floor(diffMs / (1000 * 60 * 60 * 24))
-      );
+
+      // Use ceil so partial day counts as 1 (user-friendly)
+      const ONE_DAY = 1000 * 60 * 60 * 24;
+      daysRemaining = diffMs > 0 ? Math.ceil(diffMs / ONE_DAY) : 0;
+
       isActive = diffMs > 0 && row.status === "approved";
     } else {
-      // Approved with no valid_until → treat as manually active
+      // Approved with no valid_until → treat as active but no daysRemaining info
       isActive = row.status === "approved";
+      daysRemaining = null;
     }
 
+    // Expired or not approved
     if (!isActive) {
       if (row.status === "pending") {
         return res.status(200).json({
@@ -290,6 +292,7 @@ export default async function handler(req, res) {
         });
       }
 
+      // Rejected / cancelled / expired -> behave as no_subscription
       return res.status(200).json({
         ok: true,
         status: "no_subscription",

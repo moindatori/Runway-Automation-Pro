@@ -245,6 +245,8 @@ export default function AdminPage({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [generatedToken, setGeneratedToken] = useState("");
+  // NEW: editable remaining days per user
+  const [daysDraft, setDaysDraft] = useState({});
 
   const filteredPayments = useMemo(() => {
     if (paymentFilter === "all") return payments;
@@ -255,7 +257,8 @@ export default function AdminPage({
 
   async function handlePaymentAction(id, action) {
     let label = "";
-    if (action === "approve_30") label = "approve this extension payment for 30 days?";
+    if (action === "approve_30")
+      label = "approve this extension payment for 30 days?";
     if (action === "reject") label = "reject this payment?";
     if (action === "cancel") label = "cancel this approved license now?";
 
@@ -279,13 +282,16 @@ export default function AdminPage({
     }
   }
 
-  async function handleUserAction(userId, action) {
+  // UPDATED: support extra payload and new set_days action
+  async function handleUserAction(userId, action, extra = {}) {
     let msg = "";
     if (action === "reset_device") msg = "Reset device lock for this user?";
     if (action === "extend_30")
       msg = "Extend active subscription by 30 days?";
     if (action === "cancel_subscription")
       msg = "Cancel active subscription for this user?";
+    if (action === "set_days")
+      msg = `Set remaining days for this user to ${extra.days} day(s)?`;
 
     if (msg && !confirm(msg)) return;
 
@@ -293,7 +299,7 @@ export default function AdminPage({
       const res = await fetch("/api/admin/user-actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action })
+        body: JSON.stringify({ userId, action, ...extra })
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -701,6 +707,11 @@ export default function AdminPage({
                           border: "none"
                         };
 
+                        const currentDraft =
+                          daysDraft[u.id] !== undefined
+                            ? daysDraft[u.id]
+                            : u.daysRemaining ?? "";
+
                         return (
                           <tr
                             key={u.id}
@@ -749,6 +760,7 @@ export default function AdminPage({
                                 <Badge>No subscription</Badge>
                               )}
                             </td>
+                            {/* UPDATED: editable remaining days */}
                             <td
                               style={{
                                 padding: "8px 6px",
@@ -756,9 +768,70 @@ export default function AdminPage({
                                 color: "#e5e7eb"
                               }}
                             >
-                              {u.daysRemaining != null
-                                ? `${u.daysRemaining} days`
-                                : "-"}
+                              {u.sub_status === "approved" ? (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 6
+                                  }}
+                                >
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={currentDraft}
+                                    onChange={(e) =>
+                                      setDaysDraft((prev) => ({
+                                        ...prev,
+                                        [u.id]: e.target.value
+                                      }))
+                                    }
+                                    style={{
+                                      width: 64,
+                                      borderRadius: 10,
+                                      border:
+                                        "1px solid rgba(148,163,184,0.9)",
+                                      background: "rgba(15,23,42,0.95)",
+                                      color: "#e5e7eb",
+                                      fontSize: 12,
+                                      padding: "3px 6px"
+                                    }}
+                                  />
+                                  <span style={{ fontSize: 11 }}>days</span>
+                                  <button
+                                    style={{
+                                      ...actionBtnBase,
+                                      background:
+                                        "rgba(59,130,246,0.25)",
+                                      color: "#bfdbfe"
+                                    }}
+                                    onClick={() => {
+                                      const num = parseInt(
+                                        currentDraft,
+                                        10
+                                      );
+                                      if (
+                                        Number.isNaN(num) ||
+                                        num < 0
+                                      ) {
+                                        alert(
+                                          "Enter a valid number of days"
+                                        );
+                                        return;
+                                      }
+                                      handleUserAction(u.id, "set_days", {
+                                        days: num
+                                      });
+                                    }}
+                                  >
+                                    Apply
+                                  </button>
+                                </div>
+                              ) : u.daysRemaining != null ? (
+                                `${u.daysRemaining} days`
+                              ) : (
+                                "-"
+                              )}
                             </td>
                             <td
                               style={{
@@ -1445,7 +1518,8 @@ export async function getServerSideProps(context) {
         const end = new Date(u.valid_until);
         const diffMs = end.getTime() - now.getTime();
         if (diffMs > 0) {
-          daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          // UPDATED: floor so it actually counts down
+          daysRemaining = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         } else {
           daysRemaining = 0;
         }
