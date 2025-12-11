@@ -1,91 +1,140 @@
 // pages/api/admin/user-actions.js
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { sql } from "../../../lib/db";
-
-function isAdminEmail(email) {
-  if (!email) return false;
-  const single = process.env.ADMIN_EMAIL;
-  const multi = process.env.ADMIN_EMAILS;
-  if (single && email === single) return true;
-  if (multi) {
-    const list = multi.split(",").map((e) => e.trim());
-    if (list.includes(email)) return true;
-  }
-  return false;
-}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const session = await getServerSession(req, res, authOptions);
-  if (!session || !isAdminEmail(session.user?.email)) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
   const { userId, action, days } = req.body || {};
-
   if (!userId || !action) {
     return res.status(400).json({ error: "Missing userId or action" });
   }
 
   try {
-    // 1) RESET DEVICE
-    if (action === "reset_device") {
-      await sql`
-        DELETE FROM device_locks
-        WHERE user_id = ${userId}
-      `;
-      return res.status(200).json({ ok: true, action: "reset_device" });
-    }
-
-    // Helper: latest active subscription
-    const activeRows = await sql`
-      SELECT id, end_date
-      FROM subscriptions
-      WHERE user_id = ${userId}
-        AND status = 'active'
-        AND end_date > NOW()
-      ORDER BY end_date DESC
-      LIMIT 1
+    // 1) Load user + email
+    const userRows = await sql`
+      SELECT id, email
+      FROM users
+      WHERE id = ${userId}
+      LIMIT 1;
     `;
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const userEmail = userRows[0].email;
 
-    if (!activeRows.length) {
-      return res.status(400).json({ error: "No active subscription for this user" });
+    // --- Helpers --------------------------------------------------------
+
+    async function resetDeviceLocks() {
+      await sql`
+        UPDATE device_locks
+        SET is_active = false
+        WHERE user_id = ${userId}
+          AND is_active = true;
+      `;
     }
 
-    const subId = activeRows[0].id;
+    async function loadLatestExt() {
+      const extRows = await sql`
+        SELECT id, region, status, valid_until
+        FROM extension_payments
+        WHERE user_email = ${userEmail}
+        ORDER BY created_at DESC
+        LIMIT 1;
+      `;
+      return extRows[0] || null;
+    }
 
-    // 2) EXTEND SUBSCRIPTION (default 30 days)
+    // create or update subscription:
+    //  - if existingRow exists -> update (status=approved, new valid_until)
+    //  - if not -> create new row with status=approved
+    async function upsertSubscription({ targetDays }) {
+      const existing = await loadLatestExt();
+      const region = existing?.region || "PK"; // default PK, you can change
+
+      const now = new Date();
+      let base = now;
+
+      // If already approved and valid_until in future, extend from that date
+      if (
+        existing &&
+        existing.status === "approved" &&
+        existing.valid_until
+      ) {
+        const existingEnd = new Date(existing.valid_until);
+        if (existingEnd.getTime() > now.getTime()) {
+          base = existingEnd;
+        }
+      }
+
+      const newEnd = new Date(
+        base.getTime() + targetDays * 24 * 60 * 60 * 1000
+      );
+
+      if (!existing) {
+        // No previous subscription -> create manual approved row
+        await sql`
+          INSERT INTO extension_payments
+            (user_email, device_id, region, tx_id, status, valid_until)
+          VALUES
+            (${userEmail}, NULL, ${region}, 'ADMIN_MANUAL', 'approved', ${newEnd.toISOString()});
+        `;
+      } else {
+        await sql`
+          UPDATE extension_payments
+          SET status = 'approved',
+              valid_until = ${newEnd.toISOString()}
+          WHERE id = ${existing.id};
+        `;
+      }
+    }
+
+    async function cancelSubscription() {
+      const existing = await loadLatestExt();
+      if (!existing) {
+        // nothing to cancel, just succeed
+        return;
+      }
+      await sql`
+        UPDATE extension_payments
+        SET status = 'cancelled',
+            valid_until = NOW()
+        WHERE id = ${existing.id};
+      `;
+    }
+
+    // --- Actions --------------------------------------------------------
+
+    if (action === "reset_device") {
+      await resetDeviceLocks();
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === "extend_30") {
-      const d = Number.isFinite(parseInt(days, 10)) && parseInt(days, 10) > 0
-        ? parseInt(days, 10)
-        : 30;
-
-      await sql`
-        UPDATE subscriptions
-        SET end_date = end_date + ${d} * interval '1 day'
-        WHERE id = ${subId}
-      `;
-      return res.status(200).json({ ok: true, action: "extend_30", days: d });
+      await upsertSubscription({ targetDays: 30 });
+      return res.status(200).json({ ok: true });
     }
 
-    // 3) CANCEL SUBSCRIPTION
     if (action === "cancel_subscription") {
-      await sql`
-        UPDATE subscriptions
-        SET status = 'canceled',
-            end_date = NOW()
-        WHERE id = ${subId}
-      `;
-      return res.status(200).json({ ok: true, action: "cancel_subscription" });
+      await cancelSubscription();
+      return res.status(200).json({ ok: true });
     }
 
+    if (action === "set_days") {
+      const intDays = parseInt(days, 10);
+      if (Number.isNaN(intDays) || intDays < 0) {
+        return res.status(400).json({ error: "Invalid days value" });
+      }
+      // IMPORTANT: this works even if no subscription exists yet
+      await upsertSubscription({ targetDays: intDays });
+      return res.status(200).json({ ok: true });
+    }
+
+    // Unknown action
     return res.status(400).json({ error: "Unknown action" });
   } catch (err) {
-    console.error("admin user action error", err);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("user-actions error", err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
