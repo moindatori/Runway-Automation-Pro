@@ -1,17 +1,142 @@
-// pages/user/payments.js
-
 import React, { useState, useEffect } from "react";
+
+// --- Icons (Clean & Sharp) ---
+const Icons = {
+  Check: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  ),
+  Clock: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+  ),
+  Alert: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  ),
+  Globe: () => (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="2" y1="12" x2="22" y2="12"></line>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+    </svg>
+  ),
+  Shield: () => (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  ),
+  Flag: () => (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+      <line x1="4" y1="22" x2="4" y2="15"></line>
+    </svg>
+  ),
+  CreditCard: () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+      <line x1="1" y1="10" x2="23" y2="10"></line>
+    </svg>
+  ),
+  ArrowRight: () => (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  ),
+};
 
 export default function UserPaymentsPage() {
   const [region, setRegion] = useState("PK");
 
-  // NEW: Payment status for this user (linked to backend)
+  // Payment logic (same behaviour as before)
   const [paymentStatus, setPaymentStatus] = useState("checking"); // checking | none | pending | active | rejected
   const [existingTxId, setExistingTxId] = useState("");
   const [txIdInput, setTxIdInput] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+
+  // For responsive grid without breaking SSR
+  const [isNarrow, setIsNarrow] = useState(false);
 
   const isPK = region === "PK";
   const qrUrl = isPK ? "/qr/pk_1000.png" : "/qr/intl_10usd.png";
@@ -20,45 +145,43 @@ export default function UserPaymentsPage() {
   const isFormReadOnly =
     paymentStatus === "pending" || paymentStatus === "active";
 
-  // =========================================================
-  // 1. Load current payment / subscription status from backend
-  // =========================================================
+  // Load current payment / subscription status
   useEffect(() => {
     let cancelled = false;
-
     async function fetchStatus() {
       try {
         setPaymentStatus("checking");
         setSubmitError("");
-        // Adjust this URL to match your backend route if needed
         const res = await fetch("/api/user/payments/status");
-        if (!res.ok) {
-          throw new Error("Unable to read payment status.");
-        }
+        if (!res.ok) throw new Error("Unable to read payment status.");
         const data = await res.json();
         if (cancelled) return;
-
-        const status = data.status || "none";
-        setPaymentStatus(status);
+        setPaymentStatus(data.status || "none");
         setExistingTxId(data.transactionId || "");
       } catch (err) {
         if (cancelled) return;
-        // Fallback to "none" if API not implemented yet
         setPaymentStatus("none");
         setExistingTxId("");
       }
     }
-
     fetchStatus();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // =========================================================
-  // 2. Submit transaction ID from this page (same flow as extension)
-  // =========================================================
+  // Responsive: detect width on client only
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setIsNarrow(window.innerWidth < 800);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Submit transaction ID (same pending behaviour as extension)
   async function handleSubmitTransaction(e) {
     e.preventDefault();
     if (isFormReadOnly) return;
@@ -69,40 +192,30 @@ export default function UserPaymentsPage() {
       setSubmitSuccess("");
       return;
     }
-
     try {
       setSubmitLoading(true);
       setSubmitError("");
       setSubmitSuccess("");
 
-      // Adjust this URL / body shape to match your backend route
       const res = await fetch("/api/user/payments/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transactionId: cleanTx,
-          region,
-        }),
+        body: JSON.stringify({ transactionId: cleanTx, region }),
       });
-
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok || data.ok === false) {
         throw new Error(
           data.message || "Unable to submit transaction. Try again."
         );
       }
 
-      // Treat same as extension: mark as pending until admin approves
       setPaymentStatus("pending");
       setExistingTxId(cleanTx);
       setTxIdInput("");
-      setSubmitSuccess(
-        "Transaction submitted. Your payment is now pending manual review."
-      );
+      setSubmitSuccess("Transaction submitted. Pending manual review.");
     } catch (err) {
       setSubmitError(
-        err && err.message ? err.message : "Unexpected error, please try again."
+        err && err.message ? err.message : "Unexpected error. Please try again."
       );
     } finally {
       setSubmitLoading(false);
@@ -110,667 +223,456 @@ export default function UserPaymentsPage() {
   }
 
   // ----------------------------------------------------------------
-  // UI STYLE OBJECTS
+  // VIBRANT GLASS STYLES
   // ----------------------------------------------------------------
-  const pageStyle = {
-    minHeight: "100vh",
-    margin: 0,
-    padding: "32px 16px",
-    background:
-      "radial-gradient(circle at top left, rgba(59,130,246,0.15), transparent 55%), #020617",
-    color: "#e5e7eb",
-    fontFamily:
-      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  const s = {
+    page: {
+      minHeight: "100vh",
+      background: "#0f0c29", // Deep dark base
+      fontFamily: "'Inter', system-ui, sans-serif",
+      position: "relative",
+      overflow: "hidden",
+      display: "flex",
+      justifyContent: "center",
+      padding: "80px 20px",
+    },
+
+    // Background blobs
+    blob1: {
+      position: "absolute",
+      top: "-15%",
+      left: "-10%",
+      width: "60vw",
+      height: "60vw",
+      background:
+        "radial-gradient(circle, #ff0f7b 0%, rgba(0,0,0,0) 70%)", // Hot Pink
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob2: {
+      position: "absolute",
+      bottom: "-10%",
+      right: "-10%",
+      width: "50vw",
+      height: "50vw",
+      background:
+        "radial-gradient(circle, #f89b29 0%, rgba(0,0,0,0) 70%)", // Vibrant Orange
+      filter: "blur(80px)",
+      opacity: 0.5,
+      zIndex: 0,
+    },
+    blob3: {
+      position: "absolute",
+      top: "40%",
+      left: "30%",
+      width: "40vw",
+      height: "40vw",
+      background:
+        "radial-gradient(circle, #8A2387 0%, rgba(0,0,0,0) 70%)", // Purple
+      filter: "blur(90px)",
+      opacity: 0.4,
+      zIndex: 0,
+    },
+
+    container: {
+      width: "100%",
+      maxWidth: "1000px",
+      position: "relative",
+      zIndex: 10,
+      display: "flex",
+      flexDirection: "column",
+      gap: "30px",
+    },
+
+    // Header
+    header: {
+      textAlign: "center",
+      marginBottom: "20px",
+    },
+    h1: {
+      fontSize: "42px",
+      fontWeight: "800",
+      letterSpacing: "-1px",
+      color: "#fff",
+      margin: "0 0 10px 0",
+      textShadow: "0 4px 20px rgba(0,0,0,0.3)",
+    },
+    subtitle: {
+      fontSize: "16px",
+      color: "rgba(255,255,255,0.7)",
+      fontWeight: "500",
+    },
+
+    // Grid
+    grid: {
+      display: isNarrow ? "flex" : "grid",
+      flexDirection: isNarrow ? "column" : undefined,
+      gridTemplateColumns: isNarrow ? undefined : "repeat(12, 1fr)",
+      gap: "24px",
+    },
+
+    // Glass card
+    glassPanel: {
+      background: "rgba(255, 255, 255, 0.03)",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)",
+      borderRadius: "30px",
+      border: "1px solid rgba(255, 255, 255, 0.15)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.3)",
+      borderLeft: "1px solid rgba(255, 255, 255, 0.3)",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      padding: "40px",
+      color: "#fff",
+      overflow: "hidden",
+      position: "relative",
+    },
+
+    leftCol: {
+      gridColumn: isNarrow ? undefined : "span 7",
+      marginBottom: isNarrow ? "20px" : 0,
+    },
+    rightCol: {
+      gridColumn: isNarrow ? undefined : "span 5",
+      display: "flex",
+      flexDirection: "column",
+      gap: "24px",
+    },
+
+    sectionTitle: {
+      fontSize: "20px",
+      fontWeight: "700",
+      marginBottom: "24px",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    },
+
+    // Region tabs
+    tabs: {
+      display: "flex",
+      gap: "12px",
+      marginBottom: "30px",
+    },
+    tabBtn: (active) => ({
+      flex: 1,
+      padding: "16px",
+      borderRadius: "20px",
+      border: active
+        ? "1px solid rgba(255,255,255,0.4)"
+        : "1px solid rgba(255,255,255,0.1)",
+      background: active
+        ? "linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))"
+        : "rgba(0,0,0,0.2)",
+      color: active ? "#fff" : "rgba(255,255,255,0.5)",
+      fontSize: "15px",
+      fontWeight: active ? "700" : "500",
+      cursor: "pointer",
+      backdropFilter: "blur(10px)",
+      transition: "all 0.3s ease",
+      boxShadow: active ? "0 8px 32px rgba(0,0,0,0.2)" : "none",
+    }),
+
+    // QR
+    qrBox: {
+      background: "rgba(0,0,0,0.3)",
+      borderRadius: "24px",
+      padding: "30px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      border: "1px solid rgba(255,255,255,0.1)",
+    },
+    qrImg: {
+      width: "220px",
+      height: "220px",
+      borderRadius: "16px",
+      marginBottom: "20px",
+      boxShadow: "0 0 0 8px rgba(255,255,255,0.1)",
+    },
+    priceBadge: {
+      background: "rgba(255,255,255,0.15)",
+      padding: "8px 20px",
+      borderRadius: "100px",
+      fontSize: "16px",
+      fontWeight: "600",
+      border: "1px solid rgba(255,255,255,0.2)",
+    },
+
+    // Steps
+    stepList: { listStyle: "none", padding: 0, margin: 0 },
+    stepItem: {
+      display: "flex",
+      gap: "15px",
+      marginBottom: "20px",
+      alignItems: "flex-start",
+    },
+    stepNum: {
+      background: "linear-gradient(135deg, #ff0f7b, #f89b29)",
+      width: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: "700",
+      fontSize: "12px",
+      flexShrink: 0,
+      boxShadow: "0 4px 10px rgba(248,155,41,0.4)",
+    },
+    stepText: {
+      fontSize: "14px",
+      color: "rgba(255,255,255,0.8)",
+      lineHeight: "1.6",
+    },
+
+    // Input & Button
+    input: {
+      width: "100%",
+      background: "rgba(0,0,0,0.2)",
+      border: "1px solid rgba(255,255,255,0.15)",
+      borderRadius: "16px",
+      padding: "18px 20px",
+      fontSize: "16px",
+      color: "#fff",
+      outline: "none",
+      marginBottom: "16px",
+      transition: "all 0.2s",
+      fontFamily: "monospace",
+    },
+    btn: {
+      width: "100%",
+      padding: "18px",
+      borderRadius: "16px",
+      border: "none",
+      background: isFormReadOnly
+        ? "rgba(255,255,255,0.1)"
+        : "linear-gradient(135deg, #ff0f7b 0%, #f89b29 100%)",
+      color: "#fff",
+      fontSize: "16px",
+      fontWeight: "700",
+      cursor: isFormReadOnly || submitLoading ? "not-allowed" : "pointer",
+      boxShadow: isFormReadOnly
+        ? "none"
+        : "0 10px 40px -10px rgba(255, 15, 123, 0.5)",
+      opacity: isFormReadOnly ? 0.6 : 1,
+      transition: "transform 0.1s ease",
+    },
+
+    // Status pill
+    statusPill: (status) => ({
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "8px 16px",
+      borderRadius: "100px",
+      fontSize: "13px",
+      fontWeight: "600",
+      background:
+        status === "active"
+          ? "rgba(34, 197, 94, 0.2)"
+          : status === "pending"
+          ? "rgba(234, 179, 8, 0.2)"
+          : status === "rejected"
+          ? "rgba(248, 113, 113, 0.2)"
+          : "rgba(255,255,255,0.1)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      color:
+        status === "active"
+          ? "#86efac"
+          : status === "pending"
+          ? "#fde047"
+          : status === "rejected"
+          ? "#fecaca"
+          : "#fff",
+      backdropFilter: "blur(10px)",
+      margin: "0 auto",
+      marginBottom: "20px",
+    }),
   };
 
-  const wrapperStyle = {
-    maxWidth: "1120px",
-    margin: "0 auto",
-  };
+  const statusLabel =
+    paymentStatus === "active"
+      ? "Active Plan"
+      : paymentStatus === "pending"
+      ? "Verification Pending"
+      : paymentStatus === "rejected"
+      ? "Payment Rejected"
+      : paymentStatus === "checking"
+      ? "Checking Status"
+      : "No Active Plan";
 
-  const smallTagStyle = {
-    fontSize: "10px",
-    letterSpacing: "0.25em",
-    textTransform: "uppercase",
-    color: "#64748b",
-    marginBottom: "4px",
-  };
-
-  const h1Style = {
-    fontSize: "26px",
-    fontWeight: 700,
-    color: "#e5e7eb",
-    margin: 0,
-  };
-
-  const subBarStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "6px",
-    gap: "8px",
-    flexWrap: "wrap",
-  };
-
-  const pillStyle = {
-    borderRadius: "999px",
-    border: "1px solid rgba(148,163,184,0.5)",
-    padding: "4px 10px",
-    fontSize: "10px",
-    color: "#cbd5f5",
-    background: "rgba(15,23,42,0.9)",
-  };
-
-  const statusPill = (() => {
-    if (paymentStatus === "checking") {
-      return {
-        label: "Checking subscription…",
-        style: {
-          borderColor: "rgba(148,163,184,0.5)",
-          background: "rgba(15,23,42,0.9)",
-          color: "#e5e7eb",
-        },
-      };
-    }
-    if (paymentStatus === "active") {
-      return {
-        label: "Active • Automation unlocked",
-        style: {
-          borderColor: "rgba(34,197,94,0.9)",
-          background:
-            "linear-gradient(135deg, rgba(34,197,94,0.16), rgba(21,128,61,0.3))",
-          color: "#bbf7d0",
-        },
-      };
-    }
-    if (paymentStatus === "pending") {
-      return {
-        label: "Pending review",
-        style: {
-          borderColor: "rgba(234,179,8,0.9)",
-          background:
-            "linear-gradient(135deg, rgba(250,204,21,0.08), rgba(161,98,7,0.3))",
-          color: "#facc15",
-        },
-      };
-    }
-    if (paymentStatus === "rejected") {
-      return {
-        label: "Payment rejected • Please submit again",
-        style: {
-          borderColor: "rgba(248,113,113,0.9)",
-          background:
-            "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(127,29,29,0.3))",
-          color: "#fecaca",
-        },
-      };
-    }
-    return {
-      label: "No active subscription",
-      style: {
-        borderColor: "rgba(148,163,184,0.8)",
-        background: "rgba(15,23,42,0.95)",
-        color: "#e5e7eb",
-      },
-    };
-  })();
-
-  const cardStyle = {
-    marginTop: "24px",
-    borderRadius: "24px",
-    border: "1px solid rgba(148,163,184,0.6)",
-    padding: "20px 22px 24px",
-    background:
-      "radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%), rgba(15,23,42,0.98)",
-    boxShadow: "0 26px 80px rgba(15,23,42,0.95)",
-  };
-
-  const topRowStyle = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "18px",
-    marginBottom: "18px",
-  };
-
-  const leftColStyle = {
-    flex: "1 1 260px",
-  };
-
-  const rightColStyle = {
-    flex: "0 0 280px",
-    borderRadius: "18px",
-    border: "1px solid rgba(30,64,175,0.6)",
-    background:
-      "radial-gradient(circle at top right, rgba(56,189,248,0.16), transparent 55%), rgba(15,23,42,0.98)",
-    padding: "12px 14px",
-    fontSize: "11px",
-    color: "#cbd5f5",
-  };
-
-  const sectionTitleStyle = {
-    fontSize: "13px",
-    fontWeight: 600,
-    marginBottom: "4px",
-    color: "#e5e7eb",
-  };
-
-  const bodyTextStyle = {
-    fontSize: "11px",
-    lineHeight: 1.5,
-    color: "#9ca3af",
-  };
-
-  const selectorRowStyle = {
-    marginTop: "12px",
-  };
-
-  const selectorLabelStyle = {
-    fontSize: "11px",
-    color: "#9ca3af",
-    marginBottom: "4px",
-  };
-
-  const selectorButtonsStyle = {
-    display: "flex",
-    borderRadius: "999px",
-    border: "1px solid rgba(30,64,175,0.6)",
-    background: "#020617",
-    padding: "4px",
-    maxWidth: "260px",
-  };
-
-  const locationButtonBase = {
-    flex: 1,
-    borderRadius: "999px",
-    border: "1px solid transparent",
-    padding: "7px 10px",
-    fontSize: "11px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.16s ease-out",
-  };
-
-  const pkButtonStyle = isPK
-    ? {
-        ...locationButtonBase,
-        background: "linear-gradient(135deg, #22c55e, #4ade80)",
-        color: "#022c22",
-        borderColor: "#4ade80",
-        boxShadow: "0 14px 38px rgba(34,197,94,0.55)",
-      }
-    : {
-        ...locationButtonBase,
-        background: "transparent",
-        color: "#e5e7eb",
-      };
-
-  const intButtonStyle = !isPK
-    ? {
-        ...locationButtonBase,
-        background: "linear-gradient(135deg, #38bdf8, #0ea5e9)",
-        color: "#020617",
-        borderColor: "#7dd3fc",
-        boxShadow: "0 14px 38px rgba(56,189,248,0.55)",
-      }
-    : {
-        ...locationButtonBase,
-        background: "transparent",
-        color: "#e5e7eb",
-      };
-
-  const qrRowStyle = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "22px",
-    alignItems: "flex-start",
-    marginTop: "20px",
-  };
-
-  const qrBoxOuter = {
-    borderRadius: "22px",
-    background: "#020617",
-    padding: "10px",
-    border: "1px solid rgba(30,64,175,0.7)",
-  };
-
-  const qrBoxInner = {
-    borderRadius: "18px",
-    background: "#ffffff",
-    width: "320px",
-    height: "320px",
-    maxWidth: "100%",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  const qrImgStyle = {
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-    display: "block",
-  };
-
-  const paymentInfoStyle = {
-    flex: "1 1 260px",
-    fontSize: "12px",
-    color: "#cbd5f5",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  };
-
-  const tagRowStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    fontSize: "10px",
-    color: "#a5b4fc",
-    marginTop: "6px",
-    gap: "8px",
-    flexWrap: "wrap",
-  };
-
-  const stepsCardStyle = {
-    borderRadius: "18px",
-    border: "1px solid rgba(51,65,85,0.9)",
-    background:
-      "radial-gradient(circle at top left, rgba(129,140,248,0.08), transparent 55%), rgba(15,23,42,0.98)",
-    padding: "12px 14px",
-    fontSize: "11px",
-    color: "#cbd5f5",
-  };
-
-  const disclaimerStyle = {
-    fontSize: "10px",
-    color: "#9ca3af",
-    lineHeight: 1.5,
-  };
-
-  // NEW: Transaction form styles
-  const txCardStyle = {
-    borderRadius: "16px",
-    border: "1px solid rgba(55,65,81,0.8)",
-    background:
-      "radial-gradient(circle at right, rgba(56,189,248,0.14), transparent 60%), rgba(15,23,42,0.98)",
-    padding: "12px 14px",
-    fontSize: "11px",
-    color: "#e5e7eb",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  };
-
-  const inputStyle = {
-    width: "100%",
-    borderRadius: "999px",
-    border: "1px solid rgba(75,85,99,0.9)",
-    padding: "8px 12px",
-    fontSize: "12px",
-    background: "#020617",
-    color: "#e5e7eb",
-    outline: "none",
-    boxShadow: "0 0 0 0 transparent",
-  };
-
-  const inputDisabledStyle = {
-    ...inputStyle,
-    borderColor: "rgba(75,85,99,0.6)",
-    background: "rgba(15,23,42,0.9)",
-    color: "#9ca3af",
-    cursor: "not-allowed",
-  };
-
-  const submitBtnStyle = {
-    borderRadius: "999px",
-    border: "none",
-    padding: "8px 16px",
-    fontSize: "12px",
-    fontWeight: 600,
-    cursor: submitLoading || isFormReadOnly ? "not-allowed" : "pointer",
-    background: isFormReadOnly
-      ? "rgba(55,65,81,0.9)"
-      : "linear-gradient(135deg, #22c55e, #4ade80)",
-    color: isFormReadOnly ? "#9ca3af" : "#022c22",
-    boxShadow: isFormReadOnly
-      ? "none"
-      : "0 12px 30px rgba(34,197,94,0.5)",
-    transition: "transform 0.12s ease-out, box-shadow 0.12s ease-out",
-  };
-
-  const helperTextStyle = {
-    fontSize: "10px",
-    color: "#9ca3af",
-  };
-
-  const errorTextStyle = {
-    fontSize: "10px",
-    color: "#fecaca",
-  };
-
-  const successTextStyle = {
-    fontSize: "10px",
-    color: "#bbf7d0",
-  };
+  const buttonLabel = submitLoading
+    ? "Verifying..."
+    : paymentStatus === "active"
+    ? "Payment Approved"
+    : paymentStatus === "pending"
+    ? "Waiting for Approval"
+    : "Unlock Now";
 
   return (
-    <div style={pageStyle}>
-      <div style={wrapperStyle}>
-        {/* Header */}
-        <div>
-          <div style={smallTagStyle}>Runway Prompt Studio</div>
-          <h1 style={h1Style}>Extension subscription payment</h1>
-          <div style={subBarStyle}>
-            <span style={{ fontSize: "11px", color: "#9ca3af" }}>
-              Manual review • QR based
-            </span>
-            <div
-              style={{
-                ...pillStyle,
-                ...statusPill.style,
-              }}
-            >
-              {statusPill.label}
-            </div>
+    <div style={s.page}>
+      {/* Background Blobs */}
+      <div style={s.blob1} />
+      <div style={s.blob2} />
+      <div style={s.blob3} />
+
+      <div style={s.container}>
+        <div style={s.header}>
+          <div style={s.statusPill(paymentStatus)}>
+            {paymentStatus === "active" ? <Icons.Check /> : <Icons.Shield />}
+            {statusLabel}
+          </div>
+          <h1 style={s.h1}>Unlock Pro Access</h1>
+          <div style={s.subtitle}>
+            Secure, one-time payment to activate your automation plan.
           </div>
         </div>
 
-        {/* Main card */}
-        <div style={cardStyle}>
-          <div style={topRowStyle}>
-            {/* Left: intro + location selector */}
-            <div style={leftColStyle}>
-              <div style={sectionTitleStyle}>
-                Pay for your Chrome extension subscription
-              </div>
-              <p style={bodyTextStyle}>
-                This page shows{" "}
-                <span style={{ color: "#e5e7eb", fontWeight: 500 }}>
-                  QR codes, payment instructions and a transaction ID form
-                </span>{" "}
-                for the Runway Prompt Studio Chrome extension. You can submit
-                your{" "}
-                <span style={{ color: "#e5e7eb", fontWeight: 500 }}>
-                  payment transaction ID either here or from the floating panel
-                  on app.runwayml.com
-                </span>
-                . All activations are still reviewed manually on the backend.
-              </p>
-
-              <div style={selectorRowStyle}>
-                <div style={selectorLabelStyle}>Choose your location</div>
-                <div style={selectorButtonsStyle}>
-                  <button
-                    type="button"
-                    onClick={() => setRegion("PK")}
-                    style={pkButtonStyle}
-                    disabled={submitLoading}
-                  >
-                    🇵🇰 Pakistan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRegion("INT")}
-                    style={intButtonStyle}
-                    disabled={submitLoading}
-                  >
-                    🌐 International
-                  </button>
-                </div>
-                <div
-                  style={{
-                    marginTop: "6px",
-                    fontSize: "11px",
-                    color: "#9ca3af",
-                  }}
-                >
-                  Plan selected:{" "}
-                  <span style={{ color: "#e5e7eb", fontWeight: 600 }}>
-                    {amountText}
-                  </span>
-                  .
-                </div>
-              </div>
+        <div style={s.grid}>
+          {/* Main Glass Panel (Region + QR) */}
+          <div style={{ ...s.glassPanel, ...s.leftCol }}>
+            <div style={s.sectionTitle}>
+              <Icons.CreditCard /> Choose Region
             </div>
 
-            {/* Right: Important notes */}
-            <div style={rightColStyle}>
-              <div
+            <div style={s.tabs}>
+              <button
+                onClick={() => setRegion("PK")}
+                style={s.tabBtn(isPK)}
+                type="button"
+                disabled={submitLoading}
+              >
+                🇵🇰 PKR
+              </button>
+              <button
+                onClick={() => setRegion("INT")}
+                style={s.tabBtn(!isPK)}
+                type="button"
+                disabled={submitLoading}
+              >
+                🌐 USD
+              </button>
+            </div>
+
+            <div style={s.qrBox}>
+              <img src={qrUrl} alt="Payment QR Code" style={s.qrImg} />
+              <div style={s.priceBadge}>{amountText}</div>
+              <p
                 style={{
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "#e5e7eb",
-                  marginBottom: "6px",
+                  marginTop: "15px",
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: "14px",
+                  textAlign: "center",
                 }}
               >
-                Important
-              </div>
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: "18px",
-                  listStyleType: "disc",
-                  lineHeight: 1.5,
-                }}
-              >
-                <li>
-                  Use the same Google account for both the extension and this
-                  website.
-                </li>
-                <li>
-                  After sending payment, copy the{" "}
-                  <strong>transaction ID</strong> from your bank / wallet app.
-                </li>
-                <li>
-                  You can paste the transaction ID{" "}
-                  <strong>here on this payment page</strong> or inside the{" "}
-                  <strong>extension floating panel</strong> on{" "}
-                  <span style={{ fontFamily: "monospace" }}>
-                    app.runwayml.com
-                  </span>
-                  .
-                </li>
-                <li>
-                  Once the payment is approved, your device will be unlocked and
-                  the transaction form will be locked.
-                </li>
-              </ul>
+                Scan with your banking / wallet app and send the exact amount
+                shown above.
+              </p>
             </div>
           </div>
 
-          {/* QR + payment details + transaction form */}
-          <div style={qrRowStyle}>
-            <div style={qrBoxOuter}>
-              <div style={qrBoxInner}>
-                <img src={qrUrl} alt="Payment QR" style={qrImgStyle} />
-              </div>
-              <div style={tagRowStyle}>
-                <span>
-                  Scan in your banking / wallet app and pay{" "}
-                  <span style={{ fontWeight: 600, color: "#4ade80" }}>
-                    {amountText}
-                  </span>
-                  .
-                </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(148,163,184,0.8)",
-                    background: "#020617",
-                  }}
-                >
-                  QR • one-time payment
-                </span>
-              </div>
+          {/* Side Glass Panels (Steps + Transaction Form) */}
+          <div style={s.rightCol}>
+            {/* Steps */}
+            <div style={s.glassPanel}>
+              <div style={s.sectionTitle}>How it works</div>
+              <ul style={s.stepList}>
+                <li style={s.stepItem}>
+                  <div style={s.stepNum}>1</div>
+                  <div style={s.stepText}>
+                    Scan the QR code shown on the left using your banking or
+                    wallet app.
+                  </div>
+                </li>
+                <li style={s.stepItem}>
+                  <div style={s.stepNum}>2</div>
+                  <div style={s.stepText}>
+                    Send exactly <strong>{amountText}</strong> for your plan.
+                  </div>
+                </li>
+                <li style={s.stepItem}>
+                  <div style={s.stepNum}>3</div>
+                  <div style={s.stepText}>
+                    Copy the{" "}
+                    <strong>transaction ID / reference number</strong> from your
+                    payment confirmation screen.
+                  </div>
+                </li>
+                <li style={s.stepItem}>
+                  <div style={s.stepNum}>4</div>
+                  <div style={s.stepText}>
+                    Paste that transaction ID here. After manual review, your
+                    device will be unlocked and this form will be locked.
+                  </div>
+                </li>
+              </ul>
             </div>
 
-            <div style={paymentInfoStyle}>
-              {/* Payment details */}
-              <div>
-                <div style={sectionTitleStyle}>Payment details</div>
-                <p style={{ ...bodyTextStyle, marginBottom: "4px" }}>
-                  Plan: <span style={{ color: "#e5e7eb" }}>{amountText}</span>
-                </p>
-                <p style={{ ...bodyTextStyle, marginBottom: "10px" }}>
-                  Method: Bank transfer / QR code
-                </p>
-              </div>
+            {/* Transaction Form */}
+            <div style={s.glassPanel}>
+              <div style={s.sectionTitle}>Verify Payment</div>
+              <form onSubmit={handleSubmitTransaction}>
+                <input
+                  style={s.input}
+                  placeholder="Enter Transaction ID"
+                  value={
+                    isFormReadOnly && existingTxId
+                      ? existingTxId
+                      : txIdInput
+                  }
+                  onChange={(e) =>
+                    !isFormReadOnly && setTxIdInput(e.target.value)
+                  }
+                  disabled={isFormReadOnly || submitLoading}
+                />
 
-              {/* How to pay */}
-              <div style={stepsCardStyle}>
-                <div
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    marginBottom: "4px",
-                  }}
-                >
-                  How to complete payment
-                </div>
-                <ol
-                  style={{
-                    margin: 0,
-                    paddingLeft: "18px",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  <li>Open your banking or wallet app.</li>
-                  <li>Scan the QR code shown on this page.</li>
-                  <li>Pay {amountText} for your extension license.</li>
-                  <li>
-                    Copy the{" "}
-                    <span style={{ fontWeight: 600 }}>transaction ID</span>{" "}
-                    from the payment confirmation.
-                  </li>
-                  <li>
-                    Paste the transaction ID{" "}
-                    <strong>here below</strong> or in the{" "}
-                    <strong>extension floating panel</strong> on{" "}
-                    <span style={{ fontFamily: "monospace" }}>
-                      app.runwayml.com
-                    </span>
-                    .
-                  </li>
-                </ol>
-              </div>
-
-              {/* NEW: Transaction ID submit box (same pending behaviour as extension) */}
-              <div style={txCardStyle}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "12px", fontWeight: 600 }}>
-                    Submit transaction ID
-                  </span>
-                  {paymentStatus === "pending" && (
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        padding: "2px 8px",
-                        borderRadius: "999px",
-                        border: "1px solid rgba(250,204,21,0.8)",
-                        color: "#facc15",
-                      }}
-                    >
-                      Pending review
-                    </span>
-                  )}
-                  {paymentStatus === "active" && (
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        padding: "2px 8px",
-                        borderRadius: "999px",
-                        border: "1px solid rgba(34,197,94,0.8)",
-                        color: "#bbf7d0",
-                      }}
-                    >
-                      Approved
-                    </span>
-                  )}
-                </div>
-
-                <form
-                  onSubmit={handleSubmitTransaction}
-                  style={{ display: "flex", flexDirection: "column", gap: "6px" }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Paste your bank / wallet transaction ID"
-                    value={
-                      isFormReadOnly && existingTxId
-                        ? existingTxId
-                        : txIdInput
-                    }
-                    onChange={(e) => {
-                      if (isFormReadOnly) return;
-                      setTxIdInput(e.target.value);
-                    }}
-                    style={isFormReadOnly ? inputDisabledStyle : inputStyle}
-                    disabled={isFormReadOnly || submitLoading}
-                  />
-
+                {submitError && (
                   <div
                     style={{
+                      color: "#ff4d4d",
+                      fontSize: "13px",
+                      marginBottom: "12px",
                       display: "flex",
-                      justifyContent: "space-between",
+                      gap: "6px",
                       alignItems: "center",
-                      gap: "8px",
-                      flexWrap: "wrap",
                     }}
                   >
-                    <button
-                      type="submit"
-                      style={submitBtnStyle}
-                      disabled={isFormReadOnly || submitLoading}
-                    >
-                      {paymentStatus === "active"
-                        ? "Payment approved"
-                        : paymentStatus === "pending"
-                        ? "Waiting for approval"
-                        : submitLoading
-                        ? "Submitting…"
-                        : "Submit transaction ID"}
-                    </button>
-                    <span style={helperTextStyle}>
-                      Once approved, this form will be locked for your account.
-                    </span>
+                    <Icons.Alert /> {submitError}
                   </div>
+                )}
+                {submitSuccess && (
+                  <div
+                    style={{
+                      color: "#4ade80",
+                      fontSize: "13px",
+                      marginBottom: "12px",
+                      display: "flex",
+                      gap: "6px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Icons.Check /> {submitSuccess}
+                  </div>
+                )}
+                {paymentStatus === "rejected" && !submitError && (
+                  <div
+                    style={{
+                      color: "#fecaca",
+                      fontSize: "13px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    Last payment request was rejected. Please double-check your
+                    details and submit a new transaction ID.
+                  </div>
+                )}
 
-                  {submitError && (
-                    <div style={errorTextStyle}>{submitError}</div>
-                  )}
-                  {submitSuccess && (
-                    <div style={successTextStyle}>{submitSuccess}</div>
-                  )}
-                  {paymentStatus === "rejected" && !submitError && (
-                    <div style={errorTextStyle}>
-                      Last payment request was rejected. Please check your
-                      details and submit a new transaction ID.
-                    </div>
-                  )}
-                </form>
-              </div>
-
-              <p style={disclaimerStyle}>
-                All license checks happen between the extension and the backend.
-                After you submit your transaction ID (either here or inside the
-                extension), your request is{" "}
-                <span style={{ fontWeight: 600, color: "#e5e7eb" }}>
-                  reviewed manually
-                </span>{" "}
-                and, once approved, automation unlocks on your registered
-                device. This page does not charge your card directly; it only
-                provides QR codes and a secure place to send your transaction
-                reference.
-              </p>
+                <button style={s.btn} type="submit" disabled={submitLoading || isFormReadOnly}>
+                  {buttonLabel}
+                </button>
+              </form>
             </div>
           </div>
         </div>
