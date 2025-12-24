@@ -17,12 +17,18 @@ export const authOptions = {
   },
 
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, profile }) {
       // First login ke waqt user ki info token me daal do
       if (account && user) {
         token.email = user.email;
         token.name = user.name;
       }
+
+      // Google ID (sub) ko token me store karo taa ke check.js me google_id NOT NULL issue solve ho jaye
+      if (account?.provider === "google" && profile?.sub) {
+        token.googleId = profile.sub;
+      }
+
       return token;
     },
 
@@ -33,6 +39,13 @@ export const authOptions = {
         session.user.email = token.email;
         session.user.name = token.name;
       }
+
+      // googleId ko session me bhejo
+      if (token?.googleId) {
+        session.user = session.user || {};
+        session.user.googleId = token.googleId;
+      }
+
       return session;
     },
 
