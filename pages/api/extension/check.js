@@ -27,7 +27,7 @@ function setCors(res) {
  * Make sure we have a users.id for this email
  * (uses ON CONFLICT if email is unique; otherwise will just insert once)
  */
-async function ensureUser(email, name) {
+async function ensureUser(email, name, googleId) {
   if (!sql) return null;
 
   // Try to find existing user
@@ -43,10 +43,11 @@ async function ensureUser(email, name) {
 
   // If email is UNIQUE, this ON CONFLICT is safe.
   const inserted = await sql`
-    INSERT INTO users (email, name)
-    VALUES (${email}, ${name || null})
+    INSERT INTO users (google_id, email, name)
+    VALUES (${googleId}, ${email}, ${name || null})
     ON CONFLICT (email) DO UPDATE
-      SET name = EXCLUDED.name
+      SET name = EXCLUDED.name,
+          google_id = COALESCE(users.google_id, EXCLUDED.google_id)
     RETURNING id;
   `;
 
@@ -212,9 +213,10 @@ export default async function handler(req, res) {
 
     const email = session.user.email;
     const name = session.user.name || null;
+    const googleId = session.user.googleId || session.user.id || null;
 
     // 0) Ensure we have a users.id for this email
-    const userId = await ensureUser(email, name);
+    const userId = await ensureUser(email, name, googleId);
 
     // 1) Enforce device lock (per user and per device)
     const lockResult = await enforceDeviceLock(userId, deviceId);
