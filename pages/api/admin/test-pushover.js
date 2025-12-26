@@ -1,10 +1,30 @@
+// pages/api/admin/test-pushover.js
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
+function isAdminEmail(email) {
+  if (!email) return false;
+  const single = process.env.ADMIN_EMAIL;
+  const multi = process.env.ADMIN_EMAILS;
+  if (single && email === single) return true;
+  if (multi) {
+    const list = multi.split(",").map((e) => e.trim());
+    if (list.includes(email)) return true;
+  }
+  return false;
+}
+
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
-  if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
-    return res.status(403).json({ ok: false, error: "Forbidden" });
+  const email = session?.user?.email;
+
+  if (!email || !isAdminEmail(email)) {
+    return res.status(403).json({
+      ok: false,
+      error: "Forbidden",
+      reason: !email ? "Not logged in" : "Not an admin email",
+      sessionEmail: email || null
+    });
   }
 
   const userKey = process.env.PUSHOVER_USER_KEY;
