@@ -7,6 +7,45 @@ import { neon } from "@neondatabase/serverless";
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const EXTENSION_API_TOKEN = process.env.EXTENSION_API_TOKEN;
 
+// ✅ Pushover notify (admin)
+async function notifyAdminPushover({ email, region, transactionId, deviceId }) {
+  const userKey = process.env.PUSHOVER_USER_KEY;
+  const appToken = process.env.PUSHOVER_APP_TOKEN;
+  if (!userKey || !appToken) return;
+
+  try {
+    const adminUrl =
+      (process.env.NEXTAUTH_URL || "").replace(/\/$/, "") + "/admin";
+
+    const message =
+      `New Extension Payment (PENDING)\n` +
+      `Email: ${email}\n` +
+      `Region: ${region}\n` +
+      `TX: ${transactionId}\n` +
+      `Device: ${deviceId}\n\n` +
+      `Admin: ${adminUrl}`;
+
+    const form = new URLSearchParams();
+    form.set("token", appToken);
+    form.set("user", userKey);
+    form.set("title", "Runway Automation Pro");
+    form.set("message", message);
+
+    const r = await fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+
+    if (!r.ok) {
+      const txt = await r.text().catch(() => "");
+      console.warn("Pushover notify failed:", r.status, txt);
+    }
+  } catch (e) {
+    console.warn("Pushover notify error:", e);
+  }
+}
+
 // Allowed origin: Runway app
 const ALLOWED_ORIGIN =
   process.env.NODE_ENV === "production"
@@ -73,26 +112,20 @@ export default async function handler(req, res) {
     const email = session.user.email;
     const normalizedRegion = region === "INT" ? "INT" : "PK";
 
-    // IMPORTANT:
-    // We do NOT touch extension_users/users now.
-    // Just insert into extension_payments, using email + deviceId
-    //
-    // Expected schema (no user_id needed):
-    //   id uuid DEFAULT gen_random_uuid(),
-    //   device_id text NOT NULL,
-    //   user_email text NOT NULL,
-    //   region text NOT NULL,
-    //   tx_id text NOT NULL,
-    //   status text NOT NULL DEFAULT 'pending',
-    //   valid_until timestamptz NULL,
-    //   created_at timestamptz DEFAULT now()
-    //
     await sql`
       INSERT INTO extension_payments
         (device_id, user_email, region, tx_id, status)
       VALUES
         (${deviceId}, ${email}, ${normalizedRegion}, ${txId}, 'pending')
     `;
+
+    // ✅ send admin notification (does not block success if it fails)
+    await notifyAdminPushover({
+      email,
+      region: normalizedRegion,
+      transactionId: txId,
+      deviceId,
+    });
 
     return res.status(200).json({
       ok: true,
